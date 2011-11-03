@@ -1,0 +1,18 @@
+/*
+Skin Name: Literally
+Skin URI: http://www.slidedeck.com/
+Skin Type: fluid
+Description: Inspired by books!
+Version: 1.0
+Author: digital-telepathy
+Designer: Megan Taylor
+Author URI: http://www.dtelepathy.com/
+Tags: book themed, literature, static height
+
+IE 7 Specific Stylesheet for Index Placement
+
+*/
+.skin-literally dl.slidedeck dt .index {   
+    right: 0px !important; /*overwrite for calculate inline style*/
+    top: 10px !important; /*overwrite for calculate inline style*/
+}

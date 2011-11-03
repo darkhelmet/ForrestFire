@@ -1,0 +1,114 @@
+body {
+  font-family: 'Josefin Slab', arial, serif;
+}
+
+#main {
+  font-family: 'Cabin Sketch', arial, serif;
+  font-size: 100px;
+  margin: 0px auto;
+}
+
+#main a {
+  text-decoration: none;
+  color: black;
+}
+
+#tagline {
+  display: block;
+  margin-bottom: 30px;
+  font-size: 110%;
+}
+
+#blog {
+  display: block;
+  margin-bottom: 30px;
+  font-size: 130%;
+}
+
+#footer {
+  display: block;
+  margin: 10px auto;
+  font-size: 110%;
+}
+
+.center {
+  text-align: center;
+}
+
+#extra small {
+  display: block;
+}
+
+#ios {
+  font-size: 12px;
+  height: 100px;
+  width: 400px;
+}
+
+.round {
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+}
+
+.box_shadow {
+  box-shadow: 5px 5px 25px black;
+  -webkit-box-shadow: 5px 5px 25px black;
+  -moz-box-shadow: 5px 5px 25px black;
+}
+
+.text_shadow {
+  text-shadow: rgba(0,0,0,0.25) 0px 0px 25px;
+}
+
+#slidedeck_container {
+  margin: 0px auto 25px auto;
+  width: 900px;
+  height: 400px;
+}
+
+dl.slidedeck {
+  height: 400px;
+}
+
+#column {
+  margin: 0px auto 25px auto;
+  width: 600px;
+}
+
+input {
+  font-size: 200%;
+}
+
+#extra * {
+  font-size: 150%;
+}
+
+#bookmarklet {
+  font-size: 200%;
+}
+
+.part_one p {
+  font-size: 32px;
+}
+
+.part_two p {
+  font-size: 30px;
+}
+
+.slidesVertical img {
+  max-width: 650px;
+}
+
+.si {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.part_two .vs6 img {
+  height: 220px;
+}
+
+.notice {
+  font-size: 80%;
+}

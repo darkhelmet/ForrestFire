@@ -1,0 +1,162 @@
+/*
+Skin Name: Literally
+Skin URI: http://www.slidedeck.com/
+Skin Type: fluid
+Description: Inspired by books!
+Version: 1.0
+Author: digital-telepathy
+Designer: Megan Taylor
+Author URI: http://www.dtelepathy.com/
+Tags: book themed, literature, static height
+*/
+
+.skin-literally dl.slidedeck {
+	margin: 0 0 25px;
+    -moz-box-shadow: 0 0 1em #999;
+    -webkit-box-shadow: 0 0 1em #999;
+    box-shadow: 0 0 1em #999;
+}			
+.skin-literally dl.slidedeck dd {
+	padding: 10px 30px;
+	background: url('slide.png') center top repeat-y;
+}
+.skin-literally dl.slidedeck dt {
+	cursor: pointer;
+	height: 72px;
+	line-height: 70px;
+	font-size: 16px;
+	font-weight: bold;
+	font-family: "Georgia", "Times New Roman", Times, serif !important;
+	text-transform: uppercase !important;
+	letter-spacing: 1px;
+	background: #d1d1c2 url('spines.png') left top no-repeat;
+	color: #999 !important;
+    padding-right: 80px;
+}
+.skin-literally dl.slidedeck dt:hover { color: #000 !important; }
+.skin-literally dl.slidedeck dt.active, .skin-literally dl.slidedeck dt.active:hover {
+    cursor: default;
+	color: #000 !important;
+    background-color: #ebeae2 !important;
+	background-position: left bottom;
+    border-bottom: none !important;    
+}
+.skin-literally dl.slidedeck dt.active.spine_1, .skin-literally dl.slidedeck dt.spine_1.active { height: 70px !important; }
+.skin-literally dl.slidedeck dt .index {
+    background-image: url('index_sprite.png');
+    position: absolute;
+    right: -18px !important; /*overwrite for calculate inline style*/
+    top: 46px !important; /*overwrite for calculate inline style*/
+    left: auto !important; /*overwrite for calculate inline style*/
+    bottom: auto !important; /*overwrite for calculate inline style*/
+    width: 53px !important; /*overwrite for calculate inline style*/
+    height: 0px !important; /*overwrite for calculate inline style*/
+    padding-top: 80px !important; /*overwrite for calculate inline style*/
+    overflow: hidden !important; /*overwrite for calculate inline style*/
+}
+.skin-literally dl.slidedeck dt:hover .index { color: #000000 !important; }
+.skin-literally dl.slidedeck dt.active .index { color: #000000 !important; }
+/*
+ * Roman Numeral Index - sprite position
+ * Edit index_sprite.png to add more numerals. current max - 10
+ * */
+.skin-literally dl.slidedeck dt.spine_1 .index { background-position: 0 0; }
+.skin-literally dl.slidedeck dt.spine_2 .index { background-position: 0 -80px; }
+.skin-literally dl.slidedeck dt.spine_3 .index { background-position: 0 -160px; }
+.skin-literally dl.slidedeck dt.spine_4 .index { background-position: 0 -240px; }
+.skin-literally dl.slidedeck dt.spine_5 .index { background-position: 0 -320px; }
+.skin-literally dl.slidedeck dt.spine_6 .index { background-position: 0 -400px; }
+.skin-literally dl.slidedeck dt.spine_7 .index { background-position: 0 -480px; }
+.skin-literally dl.slidedeck dt.spine_8 .index { background-position: 0 -560px; }
+.skin-literally dl.slidedeck dt.spine_9 .index { background-position: 0 -640px; }
+.skin-literally dl.slidedeck dt.spine_10 .index { background-position: 0 -720px; }
+
+.skin-literally dl.slidedeck dt.spine_1.active .index, .skin-literally dl.slidedeck dt.active.spine_1 .index { background-position: 53px 0; }
+.skin-literally dl.slidedeck dt.spine_2.active .index { background-position: 53px -80px; }
+.skin-literally dl.slidedeck dt.spine_3.active .index { background-position: 53px -160px; }
+.skin-literally dl.slidedeck dt.spine_4.active .index { background-position: 53px -240px; }
+.skin-literally dl.slidedeck dt.spine_5.active .index { background-position: 53px -320px; }
+.skin-literally dl.slidedeck dt.spine_6.active .index { background-position: 53px -400px; }
+.skin-literally dl.slidedeck dt.spine_7.active .index { background-position: 53px -480px; }
+.skin-literally dl.slidedeck dt.spine_8.active .index { background-position: 53px -560px; }
+.skin-literally dl.slidedeck dt.spine_9.active .index { background-position: 53px -640px; }
+.skin-literally dl.slidedeck dt.spine_10.active .index { background-position: 53px -720px; }
+
+.skin-literally dl.slidedeck .activeCorner {
+	margin-left: -6px;
+	width: 12px;
+	height: 25px;
+}
+.skin-literally dl.slidedeck dd.slide ul.slidesVertical { text-indent: 0; }
+.skin-literally dl.slidedeck dd.slide ul.slidesVertical li {
+    overflow: hidden;
+    padding: 10px !important;
+    margin: 0 !important;
+}
+.skin-literally dl.slidedeck dd.slide ul.verticalSlideNav {
+    top: 10px;
+    right: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.skin-literally dl.slidedeck dd.slide ul.verticalSlideNav li {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    padding: 0 0 3px;
+	width: 12px;
+	height: 12px;
+	overflow: hidden;
+	line-height: 12px;
+    list-style: none;
+	font-size: 1px; /* Stupid IE */
+}
+.skin-literally dl.slidedeck ul li:before { content: "" !important; }
+.skin-literally dl.slidedeck dd.slide ul.verticalSlideNav li.arrow {
+    position: absolute;
+    display: block;
+    z-index: 1;
+    width: 10px;
+    height: 0;
+    padding-top: 10px;
+    padding-bottom: 0;
+    overflow: hidden;
+    left: 0;
+    border: 1px solid #333;
+    background: #444;
+    background-image: -moz-linear-gradient(top, #000, #444); /* FF3.6 */
+    background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #000),color-stop(1, #444)); /* Saf4+, Chrome */
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -khtml-border-radius: 3px;
+    -o-border-radius: 3px;
+}
+.skin-literally dl.slidedeck dd.slide ul.verticalSlideNav li a, .skin-literally dl.slidedeck dd.slide ul.verticalSlideNav li a:link, .skin-literally dl.slidedeck dd.slide ul.verticalSlideNav li a:visited {
+    position: relative;
+    display: block;
+    width: 10px;
+    height: 0;
+    overflow: hidden;
+    padding-top: 10px;
+    background: #fff;
+    outline: none;
+	text-decoration: none;
+    border: 1px solid #ccc;
+    filter: Alpha(opacity=50);
+    opacity: 0.5;
+    -moz-opacity: 0.5;
+    -webkit-opacity: 0.5;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -khtml-border-radius: 3px;
+    -o-border-radius: 3px;
+}
+.skin-literally dl.slidedeck dd.slide ul.verticalSlideNav li a:hover {
+    opacity: 0.75;
+    -moz-opacity: 0.75;
+    -webkit-opacity: 0.75;
+    filter: Alpha(opacity=75); 
+}
