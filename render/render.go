@@ -11,8 +11,8 @@ type cache struct {
     m map[string]string
 }
 
-func newCache() (* cache) {
-    return &cache{ make(map[string]string) }
+func newCache() *cache {
+    return &cache{make(map[string]string)}
 }
 
 type cacheFunc func() string
@@ -27,7 +27,7 @@ func (c *cache) Get(key string, def cacheFunc) string {
     return v
 }
 
-var renderedCache * cache = newCache()
+var renderedCache *cache = newCache()
 
 func expand(path string) string {
     return fmt.Sprintf("views/%s.mustache", path)
@@ -41,10 +41,10 @@ func getViewFile(file string) string {
 func Page(page string, ctx *web.Context) string {
     return renderedCache.Get(page, func() string {
         return mustache.RenderFile(expand("layout"), map[string]string{
-            "yield": Chunk(page),
+            "yield":  Chunk(page),
             "donate": getViewFile("donate"),
             "footer": Chunk("footer"),
-            "host": ctx.Host,
+            "host":   ctx.Host,
         })
     })
 }
