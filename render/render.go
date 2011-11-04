@@ -28,24 +28,21 @@ func (c *cache) Get(key string, def cacheFunc) string {
 }
 
 var renderedCache * cache = newCache()
-var rawCache * cache = newCache()
 
-func getViewFile(file string) cacheFunc {
-    return func() string {
-        bytes, _ := ioutil.ReadFile(fmt.Sprintf("views/%s.mustache", file))
-        return string(bytes)
-    }
+func expand(path string) string {
+    return fmt.Sprintf("views/%s.mustache", path)
 }
 
-func donate() string {
-    return rawCache.Get("donate", getViewFile("donate"))
+func getViewFile(file string) string {
+    bytes, _ := ioutil.ReadFile(expand(file))
+    return string(bytes)
 }
 
 func Page(page string, ctx *web.Context) string {
     return renderedCache.Get(page, func() string {
-        return mustache.Render(rawCache.Get("layout", getViewFile("layout")), map[string]string{
+        return mustache.RenderFile(expand("layout"), map[string]string{
             "yield": Chunk(page),
-            "donate": donate(),
+            "donate": getViewFile("donate"),
             "footer": Chunk("footer"),
             "host": ctx.Host,
         })
@@ -54,8 +51,8 @@ func Page(page string, ctx *web.Context) string {
 
 func Chunk(chunk string) string {
     return renderedCache.Get(chunk, func() string {
-        return mustache.Render(rawCache.Get(chunk, getViewFile(chunk)), map[string]string{
-            "donate": donate(),
+        return mustache.RenderFile(expand(chunk), map[string]string{
+            "donate": getViewFile("donate"),
         })
     })
 }
