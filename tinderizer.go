@@ -1,34 +1,81 @@
 package main
 
 import (
+    "bookmarklet"
+    "cache"
+    "env"
+    "extractor"
     "fmt"
-    "os"
+    "json"
     "render"
+    "url"
+    "regexp"
+    "uuid"
     "web"
 )
 
+const Limit = 10
+const TTL = 5 * 60 * 1e9 // 5 minutes
+var done *regexp.Regexp
+
+type JSON map[string]interface{}
+
 func port() string {
-    tmp := os.Getenv("PORT")
-    if tmp == "" {
-        tmp = "8080"
-    }
-    return tmp
+    return env.GetDefault("PORT", "8080")
 }
 
-func forJson(ctx *web.Context) {
+func startJson(ctx *web.Context) {
     ctx.SetHeader("Access-Control-Allow-Origin", "*", true)
     ctx.SetHeader("Content-Type", "application/json; charset=utf-8", true)
+    ctx.StartResponse(200)
+}
+
+func renderJson(ctx *web.Context, data JSON) {
+    raw, _ := json.Marshal(data)
+    ctx.Write(raw)
 }
 
 func main() {
-    web.Get("/ajax/submit.json", func(ctx *web.Context) string {
-        forJson(ctx)
-        return "submit"
+    done = regexp.MustCompile("(?i:done|failed|limited|invalid|error)")
+    web.Get("/ajax/submit.json", func(ctx *web.Context) {
+        // TODO: Rate limiting
+        // TODO: Email checking
+        // TODO: Blacklisting
+        startJson(ctx)
+        url, _ := url.ParseWithReference(ctx.Params["url"])
+        key := uuid.NewUUID()
+        email := ctx.Params["email"]
+        cache.Set(key.String(), "Working...", TTL)
+        extractor.Extract(&extractor.Job{email, url, key})
+        renderJson(ctx, JSON{
+            "message": "Submitted! Hang tight...",
+            "id":      key.String(),
+        })
     })
 
-    web.Get("/ajax/status/(.*)", func(ctx *web.Context, id string) string {
-        forJson(ctx)
-        return "status"
+    web.Get("/ajax/status/(.*).json", func(ctx *web.Context, id string) {
+        startJson(ctx)
+
+        var message string
+        isDone := true
+
+        if v, err := cache.Get(id); err == nil {
+            message = v.(string)
+            isDone = done.MatchString(message)
+        } else {
+            message = "No job with that ID found."
+        }
+
+        renderJson(ctx, JSON{
+            "message": message,
+            "done":    isDone,
+        })
+    })
+
+    web.Get("/static/bookmarklet.js", func(ctx *web.Context) {
+        ctx.SetHeader("Content-Type", "application/javascript; charset=utf-8", true)
+        ctx.StartResponse(200)
+        ctx.Write(bookmarklet.Javascript())
     })
 
     web.Get("/", func(ctx *web.Context) string {
