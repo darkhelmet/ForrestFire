@@ -6,11 +6,10 @@ import (
     "env"
     "extractor"
     "fmt"
+    "job"
     "json"
     "render"
-    "url"
     "regexp"
-    "uuid"
     "web"
 )
 
@@ -42,14 +41,12 @@ func main() {
         // TODO: Email checking
         // TODO: Blacklisting
         startJson(ctx)
-        url, _ := url.ParseWithReference(ctx.Params["url"])
-        key := uuid.NewUUID()
-        email := ctx.Params["email"]
-        cache.Set(key.String(), "Working...", TTL)
-        extractor.Extract(&extractor.Job{email, url, key})
+        j := job.New(ctx.Params["email"], ctx.Params["url"])
+        cache.Set(j.KeyString(), "Working...", TTL)
+        extractor.Extract(j)
         renderJson(ctx, JSON{
             "message": "Submitted! Hang tight...",
-            "id":      key.String(),
+            "id":      j.KeyString(),
         })
     })
 

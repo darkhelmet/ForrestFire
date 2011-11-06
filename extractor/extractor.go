@@ -1,25 +1,27 @@
 package extractor
 
 import (
+    "crypto/sha1"
     "env"
     "fmt"
+    "h5"
+    "html/transform"
     "http"
+    "io"
+    "job"
     "json"
     "loggly"
+    "os"
+    "strings"
+    "sync"
     "url"
     "user"
-    "uuid"
 )
 
 const Readability = "https://readability.com/api/content/v1/parser"
+const Friendly = "Sorry, extraction failed."
 
 type JSON map[string]interface{}
-
-type Job struct {
-    Email string
-    Url   *url.URL
-    Key   uuid.UUID
-}
 
 var token string
 
@@ -31,37 +33,124 @@ func buildReadabilityUrl(u string) string {
     return fmt.Sprintf("%s?url=%s&token=%s", Readability, url.QueryEscape(u), url.QueryEscape(token))
 }
 
-func downloadAndParse(job * Job) JSON {
-    println("Downloading")
-    resp, err := http.Get(buildReadabilityUrl(job.Url.String()))
+func downloadAndParse(j *job.Job) JSON {
+    resp, err := http.Get(buildReadabilityUrl(j.Url.String()))
+    defer resp.Body.Close()
     if err != nil {
         panic(loggly.NewError(
             fmt.Sprintf("Readability Error: %s", err.Error()),
-            "Sorry, extraction failed.",
-            job.Key))
+            Friendly))
     }
     decoder := json.NewDecoder(resp.Body)
     var payload JSON
     err = decoder.Decode(&payload)
-    resp.Body.Close()
     if err != nil {
         panic(loggly.NewError(
             fmt.Sprintf("JSON Parsing Error: %s", err.Error()),
-            "Sorry, extraction failed.",
-            job.Key))
+            Friendly))
     }
     return payload
 }
 
-func Extract(job *Job) {
-    if job.Url == nil {
-        user.Notify(job.Key.String(), "This URL appears invalid. Sorry :(")
+func getFileExtension(uri string) string {
+    url, err := url.Parse(uri)
+    if err != nil {
+        // Just pretend it's JPG
+        return ".jpg"
+    }
+    path := url.Path
+    dot := strings.LastIndex(path, ".")
+    if dot == -1 {
+        return ".jpg"
+    }
+    return path[dot:]
+}
+
+func openFile(path string) *os.File {
+    file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
+    if err != nil {
+        panic(fmt.Sprintf("Failed opening file: %s", err.Error()))
+    }
+    return file
+}
+
+func getImage(url string) *http.Response {
+    resp, err := http.Get(url)
+    if err != nil {
+        panic(fmt.Sprintf("Failed download image %s: %s", url, err.Error()))
+    }
+    return resp
+}
+
+func pipe(resp *http.Response, file *os.File) {
+    written, err := io.Copy(file, resp.Body)
+    if err != nil {
+        panic(fmt.Sprintf("Error with io.Copy: %s", err.Error()))
+    }
+    if written != resp.ContentLength {
+        loggly.Notice(fmt.Sprintf("written != resp.ContentLength: %d != %d", written, resp.ContentLength))
+    }
+}
+
+func downloadToFile(url, name string) {
+    resp := getImage(url)
+    defer resp.Body.Close()
+    file := openFile(name)
+    defer file.Close()
+    pipe(resp, file)
+}
+
+func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
+    var wg sync.WaitGroup
+    root := j.Root()
+    hash := sha1.New()
+    t := transform.NewTransform(doc)
+    fix := transform.TransformAttrib("src", func(uri string) string {
+        hash.Reset()
+        hash.Write([]byte(uri))
+        altered := fmt.Sprintf("%x%s", hash.Sum(), getFileExtension(uri))
+        wg.Add(1)
+        go loggly.SwallowError(func() {
+            defer wg.Done()
+            downloadToFile(uri, fmt.Sprintf("%s/%s", root, altered))
+        })
+        return altered
+    })
+    t.Apply(fix, "img")
+    wg.Wait()
+    return t.Doc()
+}
+
+func parseHtml(content string) *h5.Node {
+    doc, err := transform.NewDoc(content)
+    if err != nil {
+        panic(loggly.NewError(
+            fmt.Sprintf("HTML Parsing Error: %s", err.Error()),
+            Friendly))
+    }
+    return doc
+}
+
+func makeRoot(j *job.Job) {
+    if err := os.MkdirAll(j.Root(), 0755); err != nil {
+        panic(loggly.NewError(
+            fmt.Sprintf("Failed to make working directory: %s", err.Error()),
+            Friendly))
+    }
+}
+
+func Extract(j *job.Job) {
+    if j.Url == nil {
+        user.Notify(j.Key.String(), "This URL appears invalid. Sorry :(")
         return
     }
 
-    go loggly.SwallowError(func() {
-        data := downloadAndParse(job)
-        fmt.Println(data)
-        user.Notify(job.Key.String(), "Done")
+    go loggly.SwallowErrorAndNotify(j.Key, func() {
+        makeRoot(j)
+        data := downloadAndParse(j)
+        doc := parseHtml(data["content"].(string))
+        doc = rewriteAndDownloadImages(j, doc)
+        user.Notify(j.KeyString(), "Done")
+        println(doc.String())
     })
 }

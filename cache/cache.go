@@ -23,10 +23,10 @@ func Set(key string, value Any, ttl int64) {
     if !ok {
         // Item not in the cache, so crank up the reaper for it
         go func() {
-           <-time.After(ttl)
-           mutex.Lock()
-           defer mutex.Unlock()
-           delete(dict, key)
+            <-time.After(ttl)
+            mutex.Lock()
+            defer mutex.Unlock()
+            delete(dict, key)
         }()
     }
     dict[key] = value

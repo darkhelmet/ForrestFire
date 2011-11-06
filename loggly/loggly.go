@@ -12,22 +12,21 @@ import (
 var messages chan string
 
 type Err struct {
-    message string
+    message  string
     friendly string
-    key fmt.Stringer
 }
 
-func NewError(message, friendly string, key fmt.Stringer) (* Err) {
-    return &Err{message, friendly, key}
+func NewError(message, friendly string) *Err {
+    return &Err{message, friendly}
 }
 
 func init() {
     endpoint := env.Get("LOGGLY_URL")
     messages = make(chan string, 25)
     go func() {
-       for message := range messages {
-           http.Post(endpoint, "text/plain", strings.NewReader(message))
-       }
+        for message := range messages {
+            http.Post(endpoint, "text/plain", strings.NewReader(message))
+        }
     }()
 }
 
@@ -41,16 +40,25 @@ func Notice(message string) {
 
 func Error(message string) {
     send("ERROR", message)
+    fmt.Println("Error:", message)
+}
+
+func SwallowErrorAndNotify(key fmt.Stringer, f func()) {
+    defer func() {
+        if r := recover(); r != nil {
+            err := r.(*Err)
+            user.Notify(err.friendly, key.String())
+            Error(err.message)
+        }
+    }()
+    f()
 }
 
 func SwallowError(f func()) {
     defer func() {
-       if r := recover(); r != nil {
-           err := r.(* Err)
-           user.Notify(err.friendly, err.key.String())
-           Error(err.message)
-           fmt.Println("Error:", err.message)
-       }
+        if r := recover(); r != nil {
+            Error(r.(string))
+        }
     }()
     f()
 }
