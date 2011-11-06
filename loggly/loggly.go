@@ -44,6 +44,7 @@ func Error(message string) {
 }
 
 func SwallowErrorAndNotify(key fmt.Stringer, f func()) {
+    // TODO: Cleanup
     defer func() {
         if r := recover(); r != nil {
             err := r.(*Err)

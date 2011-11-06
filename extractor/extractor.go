@@ -10,6 +10,7 @@ import (
     "io"
     "job"
     "json"
+    "kindlegen"
     "loggly"
     "os"
     "strings"
@@ -149,8 +150,8 @@ func Extract(j *job.Job) {
         makeRoot(j)
         data := downloadAndParse(j)
         doc := parseHtml(data["content"].(string))
-        doc = rewriteAndDownloadImages(j, doc)
-        user.Notify(j.KeyString(), "Done")
-        println(doc.String())
+        j.Doc = rewriteAndDownloadImages(j, doc)
+        user.Notify(j.KeyString(), "Extraction complete...")
+        kindlegen.Convert(j)
     })
 }
