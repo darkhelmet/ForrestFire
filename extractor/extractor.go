@@ -16,9 +16,9 @@ import (
     "strings"
     "sync"
     "url"
-    "user"
 )
 
+const DefaultAuthor = "Tinderizer"
 const Readability = "https://readability.com/api/content/v1/parser"
 const Friendly = "Sorry, extraction failed."
 
@@ -122,7 +122,7 @@ func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
     return t.Doc()
 }
 
-func parseHtml(content string) *h5.Node {
+func parseHTML(content string) *h5.Node {
     doc, err := transform.NewDoc(content)
     if err != nil {
         panic(loggly.NewError(
@@ -142,16 +142,24 @@ func makeRoot(j *job.Job) {
 
 func Extract(j *job.Job) {
     if j.Url == nil {
-        user.Notify(j.Key.String(), "This URL appears invalid. Sorry :(")
+        j.Progress("This URL appears invalid. Sorry :(")
         return
     }
 
-    go loggly.SwallowErrorAndNotify(j.Key, func() {
+    go loggly.SwallowErrorAndNotify(j, func() {
         makeRoot(j)
         data := downloadAndParse(j)
-        doc := parseHtml(data["content"].(string))
+        doc := parseHTML(data["content"].(string))
         j.Doc = rewriteAndDownloadImages(j, doc)
-        user.Notify(j.KeyString(), "Extraction complete...")
+        j.Title = data["title"].(string)
+        j.Domain = data["domain"].(string)
+        author := data["author"]
+        if author == nil {
+            j.Author = DefaultAuthor
+        } else {
+            j.Author = author.(string)
+        }
+        j.Progress("Extraction complete...")
         kindlegen.Convert(j)
     })
 }

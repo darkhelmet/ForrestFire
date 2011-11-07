@@ -31,12 +31,13 @@
   div.style.width = '300px'
   div.style.height = '30px'
   div.style.fontSize = '12px'
+  div.style.fontFamily = 'sans-serif'
 
   # TODO: Some sort of detection of a failure
   Tinderizer = () ->
     validHost = /tinderizer\.com/i
     if !validHost.test(host)
-      if confirm("Kindlebility has been renamed to Tinderizer. Please remake your bookmark to ensure it continues to work after the domain completely changes!\n\nPlease click OK to visit the new website and remake your bookmarklet when we're done here.")
+      if false #confirm("Kindlebility has been renamed to Tinderizer. Please remake your bookmark to ensure it continues to work after the domain completely changes!\n\nPlease click OK to visit the new website and remake your bookmarklet when we're done here.")
         redirect = true
 
     params = "?url=#{encodeURIComponent(url)}&email=#{encodeURIComponent(to)}&t=#{(new Date()).getTime()}"

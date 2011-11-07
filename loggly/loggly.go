@@ -1,12 +1,13 @@
 package loggly
 
 import (
+    "cleanup"
     "env"
     "fmt"
     "http"
+    "job"
     "strings"
     "time"
-    "user"
 )
 
 var messages chan string
@@ -31,7 +32,7 @@ func init() {
 }
 
 func send(level, message string) {
-    messages <- fmt.Sprintf("*** %s *** - %s - %s", level, time.UTC().Format("%Y-%m-%dT%H:%M:%S%Z"), message)
+    messages <- fmt.Sprintf("*** %s *** - %s - %s", level, time.UTC().Format(time.RFC3339), message)
 }
 
 func Notice(message string) {
@@ -43,13 +44,18 @@ func Error(message string) {
     fmt.Println("Error:", message)
 }
 
-func SwallowErrorAndNotify(key fmt.Stringer, f func()) {
+func formatError(j *job.Job, message string) string {
+    return fmt.Sprintf("%s {url=%s, email=%s}", message, j.Url, j.Email)
+}
+
+func SwallowErrorAndNotify(j *job.Job, f func()) {
     // TODO: Cleanup
     defer func() {
         if r := recover(); r != nil {
             err := r.(*Err)
-            user.Notify(err.friendly, key.String())
-            Error(err.message)
+            j.Progress(err.friendly)
+            Error(formatError(j, err.message))
+            cleanup.Clean(j)
         }
     }()
     f()

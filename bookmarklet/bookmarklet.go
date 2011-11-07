@@ -2,13 +2,15 @@ package bookmarklet
 
 import (
     "env"
-    "exec"
+    "ruby"
     "fmt"
 )
 
 type Marker struct {
     f func() []byte
 }
+
+const CoffeeScriptCompile = "CoffeeScript.compile(File.read('bookmarklet/bookmarklet.coffee'))"
 
 var bm Marker
 
@@ -31,19 +33,14 @@ func Javascript() []byte {
 }
 
 func Compile(uglifier bool) []byte {
-    script := "CoffeeScript.compile(File.read('bookmarklet/bookmarklet.coffee'))"
+    script := CoffeeScriptCompile
     if uglifier {
         script = fmt.Sprintf("Uglifier.compile(%s)", script)
     }
-    bundle, err := exec.LookPath("bundle")
+    script = fmt.Sprintf("STDOUT.write(%s)", script)
+    out, err := ruby.Run(script, []string{"coffee-script", "uglifier"})
     if err != nil {
-        panic("ruby/bundle not found")
-    }
-    args := []string{bundle, "exec", "ruby", "-rcoffee-script", "-ruglifier", "-Eutf-8:utf-8", "-e", fmt.Sprintf("print %s", script)}
-    cmd := exec.Command("ruby", args...)
-    out, err := cmd.Output()
-    if err != nil {
-        panic(fmt.Sprintf("Error running coffee-script: %s", err.Error()))
+        panic(fmt.Sprintf("Error running coffee-script: %s: %s", err.Error()))
     }
     return out
 }
