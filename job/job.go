@@ -4,9 +4,7 @@ import (
     "crypto/sha1"
     "fmt"
     "h5"
-    // "os"
     "time"
-    // "ruby"
     "url"
     "user"
     "uuid"
@@ -15,7 +13,6 @@ import (
 var tmp string
 
 func init() {
-    // tmp = os.TempDir()
     tmp = "tmp"
 }
 
@@ -74,11 +71,3 @@ func (j *Job) HTMLFilePath() string {
 func (j *Job) MobiFilePath() string {
     return fmt.Sprintf("%s/%s", j.Root(), j.MobiFilename())
 }
-
-// func (j *Job) Slug() string {
-//     out, err := ruby.RunWithInput("STDOUT.write(STDIN.read.parameterize)", j.Title, []string{"active_support/inflector"})
-//     if err != nil {
-//         return j.Title
-//     }
-//     return string(out)
-// }
