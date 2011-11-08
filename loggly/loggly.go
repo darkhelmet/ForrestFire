@@ -49,7 +49,6 @@ func formatError(j *job.Job, message string) string {
 }
 
 func SwallowErrorAndNotify(j *job.Job, f func()) {
-    // TODO: Cleanup
     defer func() {
         if r := recover(); r != nil {
             err := r.(*Err)

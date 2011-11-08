@@ -1,11 +1,9 @@
 package postmark
 
-// TODO: Handle email invalid
-// TODO: Handle large attachments
 // TODO: Look through FogBugz and async.rb to see what I'm catching
-// TODO: Cleanup
 
 import (
+    "cleanup"
     "env"
     "fmt"
     "http"
@@ -14,10 +12,13 @@ import (
     "job"
     "json"
     "loggly"
+    "os"
+    "util"
 )
 
 type Any interface{}
 
+const MaxAttachmentSize = 10485760
 const Friendly = "Sorry, email sending failed."
 const Subject = "convert"
 const Endpoint = "https://api.postmarkapp.com/email"
@@ -32,7 +33,11 @@ func init() {
 }
 
 func fail(format string, args ...interface{}) {
-    panic(loggly.NewError(fmt.Sprintf(format, args...), Friendly))
+    failFriendly(Friendly, format, args...)
+}
+
+func failFriendly(friendly, format string, args ...interface{}) {
+    panic(loggly.NewError(fmt.Sprintf(format, args...), friendly))
 }
 
 func readFile(path string) []byte {
@@ -43,9 +48,22 @@ func readFile(path string) []byte {
     return data
 }
 
+func setupHeaders(req *http.Request) {
+    req.Header.Add("Accept", "application/json")
+    req.Header.Add("Content-Type", "application/json")
+    req.Header.Add(AuthHeader, token)
+}
+
 func Send(j *job.Job) {
     go loggly.SwallowErrorAndNotify(j, func() {
-        // TODO: Optimize this by using a JSON Encoder or something
+        if stat, err := os.Stat(j.MobiFilePath()); err != nil {
+            fail("Something weird happen. Mobi is missing in postmark.go: %s", err.Error())
+        } else {
+            if stat.Size > MaxAttachmentSize {
+                failFriendly("Sorry, this article is too big to send!", "URL %s is too big", j.Url.String())
+            }
+        }
+
         payload := map[string]Any{
             "From":     from,
             "To":       j.Email,
@@ -63,23 +81,34 @@ func Send(j *job.Job) {
         reader, writer := io.Pipe()
         encoder := json.NewEncoder(writer)
         go func() {
-            encoder.Encode(payload)
             defer writer.Close()
+            encoder.Encode(payload)
         }()
         req, err := http.NewRequest("POST", Endpoint, reader)
         if err != nil {
             fail("Making HTTP Request failed: %s", err.Error())
         }
-        req.Header.Add("Accept", "application/json")
-        req.Header.Add("Content-Type", "application/json")
-        req.Header.Add(AuthHeader, token)
-
+        setupHeaders(req)
         resp, err := client.Do(req)
-        defer resp.Body.Close()
         if err != nil {
-            fail("HTTP POST failed: %s", err.Error())
+            fail("Postmark failed: %s", err.Error())
+        }
+        defer resp.Body.Close()
+        answer := util.ParseJSON(resp.Body, func(err error) {
+            fail("Something bad happened with Postmark: %s", err.Error())
+        })
+        if answer["ErrorCode"] != nil {
+            code := answer["ErrorCode"].(float64)
+            switch code {
+            case 300:
+                failFriendly("Your email appears invalid. Please try carefully remaking the bookmarklet.",
+                             "Invalid email given: %s", j.Email)
+            default:
+                loggly.Error(fmt.Sprintf("%s", answer))
+            }
         }
 
         j.Progress("All done! Grab your Kindle and hang tight!")
+        cleanup.Clean(j)
     })
 }

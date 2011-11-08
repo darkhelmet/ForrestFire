@@ -16,8 +16,8 @@ var bm Marker
 
 func init() {
     precompile := env.GetDefault("BOOKMARKLET_PRECOMPILE", "")
-    if precompile == "ugly" {
-        js := Compile(true)
+    if precompile != "" {
+        js := Compile(precompile == "ugly")
         bm = Marker{func() []byte {
             return js
         }}

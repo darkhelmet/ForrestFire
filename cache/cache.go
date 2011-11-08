@@ -16,18 +16,20 @@ func init() {
     dict = make(Cache)
 }
 
+func reap(key string, ttl int64) {
+    <-time.After(ttl)
+    mutex.Lock()
+    defer mutex.Unlock()
+    delete(dict, key)
+}
+
 func Set(key string, value Any, ttl int64) {
     mutex.Lock()
     defer mutex.Unlock()
     _, ok := dict[key]
     if !ok {
         // Item not in the cache, so crank up the reaper for it
-        go func() {
-            <-time.After(ttl)
-            mutex.Lock()
-            defer mutex.Unlock()
-            delete(dict, key)
-        }()
+        go reap(key, ttl)
     }
     dict[key] = value
 }
@@ -40,4 +42,17 @@ func Get(key string) (Any, error) {
         return v, nil
     }
     return nil, errors.New("not found")
+}
+
+func CheckAndSet(key string, ttl int64, f func() Any) Any {
+    mutex.Lock()
+    defer mutex.Unlock()
+    value, ok := dict[key]
+    if !ok {
+        // We are setting the value, so
+        go reap(key, ttl)
+        value = f()
+        dict[key] = value
+    }
+    return value
 }

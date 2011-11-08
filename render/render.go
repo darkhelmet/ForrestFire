@@ -1,33 +1,14 @@
 package render
 
 import (
+    "cache"
     "fmt"
     "io/ioutil"
     "web"
     "mustache"
 )
 
-type cache struct {
-    m map[string]string
-}
-
-func newCache() *cache {
-    return &cache{make(map[string]string)}
-}
-
-type cacheFunc func() string
-
-func (c *cache) Get(key string, def cacheFunc) string {
-    v, ok := c.m[key]
-    if !ok {
-        d := def()
-        c.m[key] = d
-        return d
-    }
-    return v
-}
-
-var renderedCache *cache = newCache()
+const TTL = 24 * 60 * 60 * 1e9 // 1 day
 
 func expand(path string) string {
     return fmt.Sprintf("views/%s.mustache", path)
@@ -39,20 +20,22 @@ func getViewFile(file string) string {
 }
 
 func Page(page string, ctx *web.Context) string {
-    return renderedCache.Get(page, func() string {
+    yield := Chunk(page)
+    footer := Chunk(page)
+    return cache.CheckAndSet(page, TTL, func() cache.Any {
         return mustache.RenderFile(expand("layout"), map[string]string{
-            "yield":  Chunk(page),
+            "yield":  yield,
             "donate": getViewFile("donate"),
-            "footer": Chunk("footer"),
+            "footer": footer,
             "host":   ctx.Host,
         })
-    })
+    }).(string)
 }
 
 func Chunk(chunk string) string {
-    return renderedCache.Get(chunk, func() string {
+    return cache.CheckAndSet(chunk, TTL, func() cache.Any {
         return mustache.RenderFile(expand(chunk), map[string]string{
             "donate": getViewFile("donate"),
         })
-    })
+    }).(string)
 }

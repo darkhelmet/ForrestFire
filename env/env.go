@@ -8,7 +8,7 @@ import (
 func Get(key string) string {
     val := os.Getenv(key)
     if val == "" {
-        fmt.Println("Missing", key)
+        panic(fmt.Sprintf("Missing environment variable %s", key))
     }
     return val
 }

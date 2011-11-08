@@ -7,15 +7,14 @@ import (
     "h5"
     "html/transform"
     "http"
-    "io"
     "job"
-    "json"
     "kindlegen"
     "loggly"
     "os"
-    "strings"
+    "regexp"
     "sync"
     "url"
+    "util"
 )
 
 const DefaultAuthor = "Tinderizer"
@@ -25,9 +24,15 @@ const Friendly = "Sorry, extraction failed."
 type JSON map[string]interface{}
 
 var token string
+var notParsed *regexp.Regexp
 
 func init() {
     token = env.Get("READABILITY_TOKEN")
+    notParsed = regexp.MustCompile("(?i:Article Could not be Parsed)")
+}
+
+func fail(format string, args ...interface{}) {
+    panic(loggly.NewError(fmt.Sprintf(format, args...), Friendly))
 }
 
 func buildReadabilityUrl(u string) string {
@@ -36,43 +41,13 @@ func buildReadabilityUrl(u string) string {
 
 func downloadAndParse(j *job.Job) JSON {
     resp, err := http.Get(buildReadabilityUrl(j.Url.String()))
+    if err != nil {
+        fail("Readability Error: %s", err.Error())
+    }
     defer resp.Body.Close()
-    if err != nil {
-        panic(loggly.NewError(
-            fmt.Sprintf("Readability Error: %s", err.Error()),
-            Friendly))
-    }
-    decoder := json.NewDecoder(resp.Body)
-    var payload JSON
-    err = decoder.Decode(&payload)
-    if err != nil {
-        panic(loggly.NewError(
-            fmt.Sprintf("JSON Parsing Error: %s", err.Error()),
-            Friendly))
-    }
-    return payload
-}
-
-func getFileExtension(uri string) string {
-    url, err := url.Parse(uri)
-    if err != nil {
-        // Just pretend it's JPG
-        return ".jpg"
-    }
-    path := url.Path
-    dot := strings.LastIndex(path, ".")
-    if dot == -1 {
-        return ".jpg"
-    }
-    return path[dot:]
-}
-
-func openFile(path string) *os.File {
-    file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
-    if err != nil {
-        panic(fmt.Sprintf("Failed opening file: %s", err.Error()))
-    }
-    return file
+    return util.ParseJSON(resp.Body, func(err error) {
+        fail("JSON Parsing Error: %s", err.Error())
+    })
 }
 
 func getImage(url string) *http.Response {
@@ -83,22 +58,17 @@ func getImage(url string) *http.Response {
     return resp
 }
 
-func pipe(resp *http.Response, file *os.File) {
-    written, err := io.Copy(file, resp.Body)
-    if err != nil {
-        panic(fmt.Sprintf("Error with io.Copy: %s", err.Error()))
-    }
-    if written != resp.ContentLength {
-        loggly.Notice(fmt.Sprintf("written != resp.ContentLength: %d != %d", written, resp.ContentLength))
-    }
-}
-
 func downloadToFile(url, name string) {
     resp := getImage(url)
     defer resp.Body.Close()
-    file := openFile(name)
+    file, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY, 0644)
+    if err != nil {
+        panic(fmt.Sprintf("Failed opening file: %s", err.Error()))
+    }
     defer file.Close()
-    pipe(resp, file)
+    util.Pipe(file, resp.Body, resp.ContentLength, func(err error) {
+        panic(fmt.Sprintf("Error with io.Copy: %s", err.Error()))
+    })
 }
 
 func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
@@ -109,7 +79,7 @@ func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
     fix := transform.TransformAttrib("src", func(uri string) string {
         hash.Reset()
         hash.Write([]byte(uri))
-        altered := fmt.Sprintf("%x%s", hash.Sum(), getFileExtension(uri))
+        altered := fmt.Sprintf("%x%s", hash.Sum(), util.GetUrlFileExtension(uri, ".jpg"))
         wg.Add(1)
         go loggly.SwallowError(func() {
             defer wg.Done()
@@ -125,18 +95,23 @@ func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
 func parseHTML(content string) *h5.Node {
     doc, err := transform.NewDoc(content)
     if err != nil {
-        panic(loggly.NewError(
-            fmt.Sprintf("HTML Parsing Error: %s", err.Error()),
-            Friendly))
+        fail("HTML Parsing Error: %s", err.Error())
     }
     return doc
 }
 
 func makeRoot(j *job.Job) {
     if err := os.MkdirAll(j.Root(), 0755); err != nil {
-        panic(loggly.NewError(
-            fmt.Sprintf("Failed to make working directory: %s", err.Error()),
-            Friendly))
+        fail("Failed to make working directory: %s", err.Error())
+    }
+}
+
+func checkDoc(data JSON) {
+    if data["error"] != nil && data["error"].(bool) {
+        fail("Readability failed: %s", data["messages"].(string))
+    }
+    if notParsed.MatchString(data["title"].(string)) {
+        fail("Readability failed, article could not be parsed.")
     }
 }
 
@@ -149,6 +124,7 @@ func Extract(j *job.Job) {
     go loggly.SwallowErrorAndNotify(j, func() {
         makeRoot(j)
         data := downloadAndParse(j)
+        checkDoc(data)
         doc := parseHTML(data["content"].(string))
         j.Doc = rewriteAndDownloadImages(j, doc)
         j.Title = data["title"].(string)

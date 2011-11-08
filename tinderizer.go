@@ -16,12 +16,15 @@ import (
 const Limit = 10
 const TTL = 5 * 60 * 1e9 // 5 minutes
 var done *regexp.Regexp
+var canonicalHost string
+var port string
+
+func init() {
+    port = env.GetDefault("PORT", "8080")
+    canonicalHost = env.GetDefault("CANONICAL_HOST", "")
+}
 
 type JSON map[string]interface{}
-
-func port() string {
-    return env.GetDefault("PORT", "8080")
-}
 
 func startJson(ctx *web.Context) {
     ctx.SetHeader("Access-Control-Allow-Origin", "*", true)
@@ -34,11 +37,22 @@ func renderJson(ctx *web.Context, data JSON) {
     ctx.Write(raw)
 }
 
+func handleRedirect(ctx *web.Context, f func() string) {
+    if canonicalHost != "" && ctx.Host != canonicalHost {
+        url := ctx.URL
+        url.Host = canonicalHost
+        url.Scheme = "http"
+        ctx.Redirect(301, url.String())
+    } else {
+        ctx.StartResponse(200)
+        ctx.WriteString(f())
+    }
+}
+
 func main() {
-    done = regexp.MustCompile("(?i:done|failed|limited|invalid|error)")
+    done = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
     web.Get("/ajax/submit.json", func(ctx *web.Context) {
         // TODO: Rate limiting
-        // TODO: Email checking
         // TODO: Blacklisting
         startJson(ctx)
         j := job.New(ctx.Params["email"], ctx.Params["url"])
@@ -75,21 +89,29 @@ func main() {
         ctx.Write(bookmarklet.Javascript())
     })
 
-    web.Get("/", func(ctx *web.Context) string {
-        return render.Page("index", ctx)
+    web.Get("/", func(ctx *web.Context) {
+        handleRedirect(ctx, func() string {
+            return render.Page("index", ctx)
+        })
     })
 
-    web.Get("/kindle-email", func() string {
-        return render.Chunk("kindle_email")
+    web.Get("/kindle-email", func(ctx *web.Context) {
+        handleRedirect(ctx, func() string {
+            return render.Chunk("kindle_email")
+        })
     })
 
-    web.Get("/(firefox|safari|chrome|ie|ios)", func(page string) string {
-        return render.Chunk(page)
+    web.Get("/(firefox|safari|chrome|ie|ios)", func(ctx *web.Context, page string) {
+        handleRedirect(ctx, func() string {
+            return render.Chunk(page)
+        })
     })
 
-    web.Get("/(faq|bugs|contact)", func(ctx *web.Context, page string) string {
-        return render.Page(page, ctx)
+    web.Get("/(faq|bugs|contact)", func(ctx *web.Context, page string) {
+        handleRedirect(ctx, func() string {
+            return render.Page(page, ctx)
+        })
     })
 
-    web.Run(fmt.Sprintf("0.0.0.0:%s", port()))
+    web.Run(fmt.Sprintf("0.0.0.0:%s", port))
 }

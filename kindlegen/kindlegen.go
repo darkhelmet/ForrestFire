@@ -8,6 +8,7 @@ import (
     "os"
     "postmark"
     "runtime"
+    "util"
 )
 
 const Friendly = "Sorry, conversion failed."
@@ -18,19 +19,16 @@ func init() {
     kindlegen = fmt.Sprintf("bin/kindlegen-%s", runtime.GOOS)
 }
 
+func fail(format string, args ...interface{}) {
+    panic(loggly.NewError(fmt.Sprintf(format, args...), Friendly))
+}
+
 func openFile(path string) *os.File {
     file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {
-        panic(loggly.NewError(
-            fmt.Sprintf("Failed opening file: %s", err.Error()),
-            Friendly))
+        fail("Failed opening file: %s", err.Error())
     }
     return file
-}
-
-func fileExists(path string) bool {
-    stat, _ := os.Stat(path)
-    return stat != nil
 }
 
 func writeHTML(j *job.Job) {
@@ -49,10 +47,9 @@ func writeHTML(j *job.Job) {
     `
     html := fmt.Sprintf(template, j.Author, j.Domain, j.Title, j.Title, j.HTML())
     file := openFile(j.HTMLFilePath())
+    defer file.Close()
     if _, err := file.WriteString(html); err != nil {
-        panic(loggly.NewError(
-            fmt.Sprintf("Failed writing HTML file: %s", err.Error()),
-            Friendly))
+        fail("Failed writing HTML file: %s", err.Error())
     }
 }
 
@@ -62,10 +59,8 @@ func Convert(j *job.Job) {
         cmd := exec.Command("kindlegen", []string{kindlegen, j.HTMLFilename()}...)
         cmd.Dir = j.Root()
         out, err := cmd.CombinedOutput()
-        if !fileExists(j.MobiFilePath()) {
-            panic(loggly.NewError(
-                fmt.Sprintf("Failed running kindlegen: %s {output=%s}", err.Error(), string(out)),
-                Friendly))
+        if !util.FileExists(j.MobiFilePath()) {
+            fail("Failed running kindlegen: %s {output=%s}", err.Error(), string(out))
         }
         j.Progress("Conversion complete...")
         postmark.Send(j)
