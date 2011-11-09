@@ -4,8 +4,8 @@ import (
     "crypto/sha1"
     "fmt"
     "h5"
+    "net/url"
     "time"
-    "url"
     "user"
     "uuid"
 )

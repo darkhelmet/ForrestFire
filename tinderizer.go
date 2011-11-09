@@ -3,13 +3,13 @@ package main
 import (
     "bookmarklet"
     "cache"
+    "encoding/json"
     "env"
     "extractor"
     "fmt"
     "job"
-    "json"
-    "render"
     "regexp"
+    "render"
     "web"
 )
 

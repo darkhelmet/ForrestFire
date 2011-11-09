@@ -2,8 +2,8 @@ package bookmarklet
 
 import (
     "env"
-    "ruby"
     "fmt"
+    "ruby"
 )
 
 type Marker struct {

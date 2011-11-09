@@ -1,8 +1,8 @@
 package ruby
 
 import (
-    "exec"
     "fmt"
+    "os/exec"
 )
 
 var bundle string

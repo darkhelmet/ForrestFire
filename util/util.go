@@ -1,13 +1,13 @@
 package util
 
 import (
+    "encoding/json"
     "fmt"
     "io"
-    "json"
     "loggly"
+    "net/url"
     "os"
     "strings"
-    "url"
 )
 
 type ErrorFunc func(error)

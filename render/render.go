@@ -4,8 +4,8 @@ import (
     "cache"
     "fmt"
     "io/ioutil"
-    "web"
     "mustache"
+    "web"
 )
 
 const TTL = 24 * 60 * 60 * 1e9 // 1 day

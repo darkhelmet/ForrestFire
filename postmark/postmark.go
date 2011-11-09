@@ -4,14 +4,14 @@ package postmark
 
 import (
     "cleanup"
+    "encoding/json"
     "env"
     "fmt"
-    "http"
     "io"
     "io/ioutil"
     "job"
-    "json"
     "loggly"
+    "net/http"
     "os"
     "util"
 )
@@ -102,7 +102,7 @@ func Send(j *job.Job) {
             switch code {
             case 300:
                 failFriendly("Your email appears invalid. Please try carefully remaking the bookmarklet.",
-                             "Invalid email given: %s", j.Email)
+                    "Invalid email given: %s", j.Email)
             default:
                 loggly.Error(fmt.Sprintf("%s", answer))
             }

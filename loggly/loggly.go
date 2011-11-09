@@ -4,8 +4,8 @@ import (
     "cleanup"
     "env"
     "fmt"
-    "http"
     "job"
+    "net/http"
     "strings"
     "time"
 )

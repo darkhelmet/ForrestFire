@@ -1,11 +1,11 @@
 package kindlegen
 
 import (
-    "exec"
     "fmt"
     "job"
     "loggly"
     "os"
+    "os/exec"
     "postmark"
     "runtime"
     "util"

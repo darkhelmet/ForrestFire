@@ -6,14 +6,14 @@ import (
     "fmt"
     "h5"
     "html/transform"
-    "http"
     "job"
     "kindlegen"
     "loggly"
+    "net/http"
+    "net/url"
     "os"
     "regexp"
     "sync"
-    "url"
     "util"
 )
 
