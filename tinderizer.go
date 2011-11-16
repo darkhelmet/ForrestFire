@@ -10,7 +10,7 @@ import (
     "job"
     "regexp"
     "render"
-    "web"
+    "github.com/darkhelmet/web.go"
 )
 
 const Limit = 10

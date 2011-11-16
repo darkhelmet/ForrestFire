@@ -4,8 +4,8 @@ import (
     "cache"
     "fmt"
     "io/ioutil"
-    "mustache"
-    "web"
+    "github.com/darkhelmet/mustache.go"
+    "github.com/darkhelmet/web.go"
 )
 
 const TTL = 24 * 60 * 60 * 1e9 // 1 day
