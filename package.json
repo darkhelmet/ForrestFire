@@ -1,0 +1,7 @@
+{
+  "name": "ForrestFire",
+  "version": "1.0.0",
+  "dependencies": {
+    "coffee-script": "1.1.3"
+  }
+}
