@@ -2,6 +2,7 @@
   "name": "ForrestFire",
   "version": "1.0.0",
   "dependencies": {
-    "coffee-script": "1.1.3"
+    "coffee-script": "1.1.3",
+    "uglify": "1.1.1"
   }
 }

@@ -3,18 +3,33 @@ package bookmarklet
 import (
     "env"
     "fmt"
-    "ruby"
+    "os/exec"
 )
 
 type Marker struct {
     f func() []byte
 }
 
-const CoffeeScriptCompile = "CoffeeScript.compile(File.read('bookmarklet/bookmarklet.coffee'))"
+const CoffeeScriptCompile = "coffee -p -c bookmarklet/bookmarklet.coffee"
 
 var bm Marker
+var bash string
 
 func init() {
+    var err error
+    bash, err = exec.LookPath("bash")
+    if err != nil {
+        panic("bash not found")
+    }
+
+    if _, e := exec.LookPath("coffee"); e != nil {
+        panic("coffee-script not found")
+    }
+
+    if _, e := exec.LookPath("uglifyjs"); e != nil {
+        panic("uglify-js not found")
+    }
+
     precompile := env.GetDefault("BOOKMARKLET_PRECOMPILE", "")
     if precompile != "" {
         js := Compile(precompile == "ugly")
@@ -35,12 +50,13 @@ func Javascript() []byte {
 func Compile(uglifier bool) []byte {
     script := CoffeeScriptCompile
     if uglifier {
-        script = fmt.Sprintf("Uglifier.compile(%s)", script)
+        script = fmt.Sprintf("%s | uglifyjs", script)
     }
-    script = fmt.Sprintf("STDOUT.write(%s)", script)
-    out, err := ruby.Run(script, []string{"coffee-script", "uglifier"})
+    args := []string{bash, "-c", script}
+    cmd := exec.Command("bash", args...)
+    out, err := cmd.Output()
     if err != nil {
-        panic(fmt.Sprintf("Error running coffee-script: %s: %s", err.Error()))
+        panic(fmt.Sprintf("Failed compiling: %s", err.Error()))
     }
     return out
 }
