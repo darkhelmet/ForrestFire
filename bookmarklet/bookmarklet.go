@@ -52,8 +52,8 @@ func Compile(uglifier bool) []byte {
     if uglifier {
         script = fmt.Sprintf("%s | uglifyjs", script)
     }
-    args := []string{bash, "-c", script}
-    cmd := exec.Command("bash", args...)
+    args := []string{"-c", script}
+    cmd := exec.Command(bash, args...)
     out, err := cmd.Output()
     if err != nil {
         panic(fmt.Sprintf("Failed compiling: %s", err.Error()))
