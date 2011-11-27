@@ -4,7 +4,7 @@ import (
     "cache"
     "fmt"
     "io/ioutil"
-    "github.com/darkhelmet/mustache.go"
+    "html/template"
     "github.com/darkhelmet/web.go"
 )
 
