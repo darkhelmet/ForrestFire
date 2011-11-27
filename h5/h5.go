@@ -74,7 +74,7 @@ func insertionModeSwitch(p *Parser, n *Node) stateHandler {
 	case IM_beforeHtml:
 		//fmt.Println("starting doctypeStateHandler")
 		p.Mode = IM_beforeHead
-		return handleChar(startDoctypeStateHandler)
+		return handleChar("startDoctypeStateHandler", startDoctypeStateHandler)
 		//fallthrough
 	case IM_beforeHead:
 		switch n.Type {
@@ -103,7 +103,7 @@ func insertionModeSwitch(p *Parser, n *Node) stateHandler {
 			case "script":
 				//fmt.Println("In a script tag")
 				p.Mode = IM_text
-				return handleChar(startScriptDataState)
+				return handleChar("startScriptDataState", startScriptDataState)
 			case "body":
 				p.Mode = IM_inBody
 			default:
@@ -159,7 +159,7 @@ func insertionModeSwitch(p *Parser, n *Node) stateHandler {
 			case "script":
 				//fmt.Println("In a script tag")
 				p.Mode = IM_text
-				return handleChar(startScriptDataState)
+				return handleChar("startScriptDataState", startScriptDataState)
 			default:
 				// TODO(jwall): parse error
 			}
@@ -170,9 +170,9 @@ func insertionModeSwitch(p *Parser, n *Node) stateHandler {
 			//fmt.Println("setting insertionMode to inBody")
 			p.Mode = IM_inBody
 			popNode(p)
-			return handleChar(dataStateHandler)
+			return handleChar("dataStateHandler", dataStateHandler)
 		}
-		return handleChar(scriptDataStateHandler)
+		return handleChar("scriptDataStateHandler", scriptDataStateHandler)
 	case IM_afterFrameset:
 		fallthrough
 	case IM_afterAfterFrameset:
@@ -181,7 +181,7 @@ func insertionModeSwitch(p *Parser, n *Node) stateHandler {
 		fallthrough
 		// TODO(jwall): parse error
 	}
-	return handleChar(dataStateHandler)
+	return handleChar("dataStateHandler", dataStateHandler)
 }
 
 func dataStateHandlerSwitch(p *Parser) stateHandler {
@@ -271,14 +271,14 @@ func textConsumer(p *Parser, chars ...rune) {
 	p.curr.data = append(p.curr.data, chars...) // ugly but safer
 }
 
-var memoized = make(map[func(*Parser, rune) stateHandler]stateHandler)
+var memoized = make(map[string]stateHandler)
 
 // TODO(jwall): UNITTESTS!!!!
-func handleChar(h func(*Parser, rune) stateHandler) stateHandler {
-	if f, ok := memoized[h]; ok {
+func handleChar(key string, h func(*Parser, rune) stateHandler) stateHandler {
+	if f, ok := memoized[key]; ok {
 		return f
 	}
-	memoized[h] = func(p *Parser) (stateHandler, error) {
+	memoized[key] = func(p *Parser) (stateHandler, error) {
 		c, err := p.nextInput()
 		if err != nil {
 			return nil, err
@@ -286,7 +286,7 @@ func handleChar(h func(*Parser, rune) stateHandler) stateHandler {
 		//fmt.Printf("YYY: char %c\n", c)
 		return h(p, c), nil
 	}
-	return memoized[h]
+	return memoized[key]
 }
 
 func startDoctypeStateHandler(p *Parser, c rune) stateHandler {
@@ -299,7 +299,7 @@ func startDoctypeStateHandler(p *Parser, c rune) stateHandler {
 			return nil
 		}
 		if c2 == '!' { // its a doc type tag yay
-			return handleChar(doctypeStateHandler)
+			return handleChar("doctypeStateHandler", doctypeStateHandler)
 		} else { // whoops not a doctype tag
 			// TODO setup a default doctype
 			// TODO we need a way to reconsume two characters :-(
@@ -318,7 +318,7 @@ func doctypeStateHandler(p *Parser, c rune) stateHandler {
 	//fmt.Printf("Parsing Doctype c:%c\n", c)
 	switch c {
 	case '\t', '\n', '\f', ' ':
-		return handleChar(beforeDoctypeHandler)
+		return handleChar("beforeDoctypeHandler", beforeDoctypeHandler)
 	default:
 		// TODO parse error
 		// reconsume in BeforeDoctypeState
@@ -334,17 +334,17 @@ func beforeDoctypeHandler(p *Parser, c rune) stateHandler {
 	switch {
 	case c == '\t', c == '\n', c == '\f', c == ' ':
 		// ignore
-		return handleChar(beforeDoctypeHandler)
+		return handleChar("beforeDoctypeHandler", beforeDoctypeHandler)
 	case c == '>':
 		// TODO parse error, quirks mode
 		return dataStateHandlerSwitch(p)
 	case 'A' <= c && c <= 'Z':
 		lc := c + 0x0020 // lowercase it
 		curr.data = append(curr.data, lc)
-		return handleChar(doctypeNameState)
+		return handleChar("doctypeNameState", doctypeNameState)
 	default:
 		curr.data = append(curr.data, c)
-		return handleChar(doctypeNameState)
+		return handleChar("doctypeNameState", doctypeNameState)
 	}
 	panic("unreachable")
 }
@@ -361,10 +361,10 @@ func doctypeNameState(p *Parser, c rune) stateHandler {
 	case 'A' <= c && c <= 'Z':
 		lc := c + 0x0020 // lowercase it
 		n.data = append(n.data, lc)
-		return handleChar(doctypeNameState)
+		return handleChar("doctypeNameState", doctypeNameState)
 	default:
 		n.data = append(n.data, c)
-		return handleChar(doctypeNameState)
+		return handleChar("doctypeNameState", doctypeNameState)
 	}
 	panic("unreachable")
 }
@@ -397,10 +397,10 @@ func afterDoctypeNameHandler(p *Parser) (stateHandler, error) {
 				switch string(firstSix) {
 				case public:
 					p.curr.Public = true
-					return handleChar(afterDoctypeHandler), nil
+					return handleChar("afterDoctypeHandler", afterDoctypeHandler), nil
 				case system:
 					p.curr.System = true
-					return handleChar(afterDoctypeHandler), nil
+					return handleChar("afterDoctypeHandler", afterDoctypeHandler), nil
 				}
 			} else {
 				lc := c + 0x0020 // lowercase it
@@ -416,10 +416,10 @@ func afterDoctypeHandler(p *Parser, c rune) stateHandler {
 	switch c {
 	case '\t', '\n', '\f', ' ':
 		// ignore
-		return handleChar(beforeDoctypeIdentHandler)
+		return handleChar("beforeDoctypeIdentHandler", beforeDoctypeIdentHandler)
 	case '"', '\'':
 		// TODO parse error
-		return handleChar(makeIdentQuotedHandler(c))
+		return handleChar("makeIdentQuotedHandler" + string(c), makeIdentQuotedHandler(c))
 	case '>':
 		// TODO parse error
 		return dataStateHandlerSwitch(p)
@@ -435,9 +435,9 @@ func beforeDoctypeIdentHandler(p *Parser, c rune) stateHandler {
 	switch c {
 	case '\t', '\n', '\f', ' ':
 		// ignore
-		return handleChar(beforeDoctypeIdentHandler)
+		return handleChar("beforeDoctypeIdentHandler", beforeDoctypeIdentHandler)
 	case '"', '\'':
-		return handleChar(makeIdentQuotedHandler(c))
+		return handleChar("makeIdentQuotedHandler" + string(c), makeIdentQuotedHandler(c))
 	case '>':
 		// TODO parse error
 		return dataStateHandlerSwitch(p)
@@ -454,7 +454,7 @@ func makeIdentQuotedHandler(q rune) func(*Parser, rune) stateHandler {
 		c2 := c
 		for {
 			if q == c2 {
-				return handleChar(afterDoctypeIdentifierHandler)
+				return handleChar("afterDoctypeIdentifierHandler", afterDoctypeIdentifierHandler)
 			}
 			if c2 == '>' {
 				// TODO parse error
@@ -476,7 +476,7 @@ func makeIdentQuotedHandler(q rune) func(*Parser, rune) stateHandler {
 func afterDoctypeIdentifierHandler(p *Parser, c rune) stateHandler {
 	switch c {
 	case '\t', '\n', '\f', ' ':
-		return handleChar(afterDoctypeIdentifierHandler)
+		return handleChar("afterDoctypeIdentifierHandler", afterDoctypeIdentifierHandler)
 	case '>':
 		p.Mode = IM_beforeHtml
 		return dataStateHandlerSwitch(p)
@@ -496,7 +496,7 @@ func startScriptDataState(p *Parser, c rune) stateHandler {
 func scriptDataStateHandler(p *Parser, c rune) stateHandler {
 	switch c {
 	case '<':
-		return handleChar(scriptDataLessThanHandler)
+		return handleChar("scriptDataLessThanHandler", scriptDataLessThanHandler)
 	default:
 		textConsumer(p, c)
 		for {
@@ -506,7 +506,7 @@ func scriptDataStateHandler(p *Parser, c rune) stateHandler {
 				return nil
 			}
 			if c2 == '<' {
-				return handleChar(scriptDataLessThanHandler)
+				return handleChar("scriptDataLessThanHandler", scriptDataLessThanHandler)
 			}
 			textConsumer(p, c2)
 		}
@@ -519,10 +519,10 @@ func scriptDataLessThanHandler(p *Parser, c rune) stateHandler {
 	switch c {
 	case '/':
 		p.buf = make([]rune, 0, 1)
-		return handleChar(scriptDataEndTagOpenHandler)
+		return handleChar("scriptDataEndTagOpenHandler", scriptDataEndTagOpenHandler)
 	default:
 		textConsumer(p, '<', c)
-		return handleChar(scriptDataStateHandler)
+		return handleChar("scriptDataStateHandler", scriptDataStateHandler)
 	}
 	panic("unreachable")
 }
@@ -533,13 +533,13 @@ func scriptDataEndTagOpenHandler(p *Parser, c rune) stateHandler {
 	case 'A' <= c && c <= 'Z':
 		lc := c + 0x0020 // lowercase it
 		p.buf = append(p.buf, lc)
-		return handleChar(scriptDataEndTagNameHandler)
+		return handleChar("scriptDataEndTagNameHandler", scriptDataEndTagNameHandler)
 	case 'a' <= c && c <= 'z':
 		p.buf = append(p.buf, c)
-		return handleChar(scriptDataEndTagNameHandler)
+		return handleChar("scriptDataEndTagNameHandler", scriptDataEndTagNameHandler)
 	default:
 		textConsumer(p, '<', '/')
-		return handleChar(scriptDataStateHandler)
+		return handleChar("scriptDataStateHandler", scriptDataStateHandler)
 	}
 	panic("unreachable")
 }
@@ -550,17 +550,17 @@ func scriptDataEndTagNameHandler(p *Parser, c rune) stateHandler {
 	switch {
 	case c == '\t', c == '\f', c == '\n', c == ' ':
 		if n.Data() == string(p.buf) {
-			return handleChar(beforeAttributeNameHandler)
+			return handleChar("beforeAttributeNameHandler", beforeAttributeNameHandler)
 		} else {
 			p.buf = append(p.buf, c)
-			return handleChar(scriptDataStateHandler)
+			return handleChar("scriptDataStateHandler", scriptDataStateHandler)
 		}
 	case c == '/':
 		if n.Parent.Data() == string(p.buf) {
-			return handleChar(selfClosingTagStartHandler)
+			return handleChar("selfClosingTagStartHandler", selfClosingTagStartHandler)
 		} else {
 			//fmt.Println("we don't match :-( keep going")
-			return handleChar(scriptDataStateHandler)
+			return handleChar("scriptDataStateHandler", scriptDataStateHandler)
 		}
 	case c == '>':
 		if n.Parent.Data() == string(p.buf) {
@@ -569,19 +569,19 @@ func scriptDataEndTagNameHandler(p *Parser, c rune) stateHandler {
 			return dataStateHandlerSwitch(p)
 		} else {
 			//fmt.Println("we don't match :-( keep going")
-			return handleChar(scriptDataStateHandler)
+			return handleChar("scriptDataStateHandler", scriptDataStateHandler)
 		}
 	case 'A' <= c && c <= 'Z':
 		lc := c + 0x0020 // lowercase it
 		p.buf = append(p.buf, lc)
-		return handleChar(scriptDataEndTagNameHandler)
+		return handleChar("scriptDataEndTagNameHandler", scriptDataEndTagNameHandler)
 	case 'a' <= c && c <= 'z':
 		p.buf = append(p.buf, c)
-		return handleChar(scriptDataEndTagNameHandler)
+		return handleChar("scriptDataEndTagNameHandler", scriptDataEndTagNameHandler)
 	default:
 		textConsumer(p, '<', '/')
 		textConsumer(p, p.buf...)
-		return handleChar(scriptDataStateHandler)
+		return handleChar("scriptDataStateHandler", scriptDataStateHandler)
 	}
 	panic("unreachable")
 }
@@ -608,7 +608,7 @@ func dataStateHandler(p *Parser, c rune) stateHandler {
 	}
 	switch c {
 	case '<':
-		return handleChar(tagOpenHandler)
+		return handleChar("tagOpenHandler", tagOpenHandler)
 	default:
 		pushNode(p)
 		textConsumer(p, c)
@@ -700,13 +700,13 @@ func tagOpenHandler(p *Parser, c rune) stateHandler {
 		curr.Type = ElementNode
 		lc := c + 0x0020 // lowercase it
 		curr.data = []rune{lc}
-		return handleChar(tagNameHandler)
+		return handleChar("tagNameHandler", tagNameHandler)
 	case 'a' <= c && c <= 'z':
 		//fmt.Printf("ZZZ: opening a new tag\n")
 		curr := pushNode(p)
 		curr.Type = ElementNode
 		curr.data = []rune{c}
-		return handleChar(tagNameHandler)
+		return handleChar("tagNameHandler", tagNameHandler)
 	default: // parse error // recover using Section 11.2.4.8 rules
 		// TODO
 	}
@@ -719,18 +719,18 @@ func tagNameHandler(p *Parser, c rune) stateHandler {
 	// TODO(jwall): make this more efficient with a for loop
 	switch {
 	case c == '\t', c == '\n', c == '\f', c == ' ':
-		return handleChar(beforeAttributeNameHandler)
+		return handleChar("beforeAttributeNameHandler", beforeAttributeNameHandler)
 	case c == '/':
-		return handleChar(selfClosingTagStartHandler)
+		return handleChar("selfClosingTagStartHandler", selfClosingTagStartHandler)
 	case c == '>':
 		return dataStateHandlerSwitch(p)
 	case 'A' <= c && c <= 'Z':
 		lc := c + 0x0020 // lowercase it
 		n.data = append(n.data, lc)
-		return handleChar(tagNameHandler)
+		return handleChar("tagNameHandler", tagNameHandler)
 	default:
 		n.data = append(n.data, c)
-		return handleChar(tagNameHandler)
+		return handleChar("tagNameHandler", tagNameHandler)
 	}
 	panic("Unreachable")
 }
@@ -741,9 +741,9 @@ func beforeAttributeNameHandler(p *Parser, c rune) stateHandler {
 	switch {
 	case c == '\t' || c == '\n' || c == '\f', c == ' ':
 		// ignore
-		return handleChar(beforeAttributeNameHandler)
+		return handleChar("beforeAttributeNameHandler", beforeAttributeNameHandler)
 	case c == '/':
-		return handleChar(selfClosingTagStartHandler)
+		return handleChar("selfClosingTagStartHandler", selfClosingTagStartHandler)
 	case c == '>':
 		return dataStateHandlerSwitch(p)
 	case 'A' <= c && c <= 'Z':
@@ -751,7 +751,7 @@ func beforeAttributeNameHandler(p *Parser, c rune) stateHandler {
 		newAttr := new(Attribute)
 		newAttr.Name = string(lc)
 		n.Attr = append(n.Attr, newAttr)
-		return handleChar(attributeNameHandler)
+		return handleChar("attributeNameHandler", attributeNameHandler)
 	case c == '=', c == '"', c == '\'', c == '<':
 		// TODO parse error
 		fallthrough
@@ -759,7 +759,7 @@ func beforeAttributeNameHandler(p *Parser, c rune) stateHandler {
 		newAttr := new(Attribute)
 		newAttr.Name = string(c)
 		n.Attr = append(n.Attr, newAttr)
-		return handleChar(attributeNameHandler)
+		return handleChar("attributeNameHandler", attributeNameHandler)
 	}
 	panic("Unreachable")
 }
@@ -769,25 +769,25 @@ func attributeNameHandler(p *Parser, c rune) stateHandler {
 	n := p.curr
 	switch {
 	case c == '\t', c == '\n', c == '\f', c == ' ':
-		return handleChar(afterAttributeNameHandler)
+		return handleChar("afterAttributeNameHandler", afterAttributeNameHandler)
 	case c == '/':
-		return handleChar(selfClosingTagStartHandler)
+		return handleChar("selfClosingTagStartHandler", selfClosingTagStartHandler)
 	case c == '>':
 		return dataStateHandlerSwitch(p)
 	case c == '=':
-		return handleChar(beforeAttributeValueHandler)
+		return handleChar("beforeAttributeValueHandler", beforeAttributeValueHandler)
 	case 'A' <= c && c <= 'Z':
 		lc := c + 0x0020 // lowercase it
 		currAttr := n.Attr[len(n.Attr)-1]
 		currAttr.Name += string(lc)
-		return handleChar(attributeNameHandler)
+		return handleChar("attributeNameHandler", attributeNameHandler)
 	case c == '"', c == '\'', c == '<':
 		// TODO parse error
 		fallthrough
 	default:
 		currAttr := n.Attr[len(n.Attr)-1]
 		currAttr.Name += string(c)
-		return handleChar(attributeNameHandler)
+		return handleChar("attributeNameHandler", attributeNameHandler)
 	}
 	panic("Unreachable")
 }
@@ -798,10 +798,10 @@ func beforeAttributeValueHandler(p *Parser, c rune) stateHandler {
 	currAttr := n.Attr[len(n.Attr)-1]
 	switch c {
 	case '\t', '\n', '\f', ' ':
-		return handleChar(beforeAttributeValueHandler)
+		return handleChar("beforeAttributeValueHandler", beforeAttributeValueHandler)
 	case '"', '\'':
 		currAttr.quote = c
-		return handleChar(makeAttributeValueQuotedHandler(c))
+		return handleChar("makeAttributeValueQuotedHandler" + string(c), makeAttributeValueQuotedHandler(c))
 	case '>':
 		return dataStateHandlerSwitch(p)
 	case '<', '=', '`':
@@ -809,7 +809,7 @@ func beforeAttributeValueHandler(p *Parser, c rune) stateHandler {
 		fallthrough
 	default:
 		currAttr.Value += string(c)
-		return handleChar(attributeValueUnquotedHandler)
+		return handleChar("attributeValueUnquotedHandler", attributeValueUnquotedHandler)
 	}
 	panic("Unreachable")
 }
@@ -825,13 +825,13 @@ func makeAttributeValueQuotedHandler(c rune) func(p *Parser, c rune) stateHandle
 		switch c2 {
 		case '"', '\'':
 			if c2 == c {
-				return handleChar(afterAttributeValueQuotedHandler)
+				return handleChar("afterAttributeValueQuotedHandler", afterAttributeValueQuotedHandler)
 			}
 			fallthrough
 		default:
 			currAttr := n.Attr[len(n.Attr)-1]
 			currAttr.Value += string(c2)
-			return handleChar(makeAttributeValueQuotedHandler(c))
+			return handleChar("makeAttributeValueQuotedHandler" + string(c), makeAttributeValueQuotedHandler(c))
 		}
 		panic("Unreachable")
 	}
@@ -844,7 +844,7 @@ func attributeValueUnquotedHandler(p *Parser, c rune) stateHandler {
 	n := p.curr
 	switch c {
 	case '\t', '\n', '\f', ' ':
-		return handleChar(beforeAttributeNameHandler)
+		return handleChar("beforeAttributeNameHandler", beforeAttributeNameHandler)
 	case '>':
 		return dataStateHandlerSwitch(p)
 	case '"', '\'', '<', '=', '`':
@@ -853,7 +853,7 @@ func attributeValueUnquotedHandler(p *Parser, c rune) stateHandler {
 	default:
 		currAttr := n.Attr[len(n.Attr)-1]
 		currAttr.Value += string(c)
-		return handleChar(attributeValueUnquotedHandler)
+		return handleChar("attributeValueUnquotedHandler", attributeValueUnquotedHandler)
 	}
 	panic("Unreachable")
 }
@@ -862,14 +862,14 @@ func attributeValueUnquotedHandler(p *Parser, c rune) stateHandler {
 func afterAttributeValueQuotedHandler(p *Parser, c rune) stateHandler {
 	switch c {
 	case '\t', '\n', '\f', ' ':
-		return handleChar(beforeAttributeNameHandler)
+		return handleChar("beforeAttributeNameHandler", beforeAttributeNameHandler)
 	case '/':
-		return handleChar(selfClosingTagStartHandler)
+		return handleChar("selfClosingTagStartHandler", selfClosingTagStartHandler)
 	case '>':
 		return dataStateHandlerSwitch(p)
 	default:
 		// TODO Parse error Reconsume the Character in the before attribute name state
-		return handleChar(beforeAttributeNameHandler)
+		return handleChar("beforeAttributeNameHandler", beforeAttributeNameHandler)
 	}
 	panic("Unreachable")
 }
@@ -879,19 +879,19 @@ func afterAttributeNameHandler(p *Parser, c rune) stateHandler {
 	n := p.curr
 	switch {
 	case c == '\t', c == '\n', c == '\f', c == ' ':
-		return handleChar(afterAttributeNameHandler)
+		return handleChar("afterAttributeNameHandler", afterAttributeNameHandler)
 	case c == '/':
-		return handleChar(selfClosingTagStartHandler)
+		return handleChar("selfClosingTagStartHandler", selfClosingTagStartHandler)
 	case c == '>':
 		return dataStateHandlerSwitch(p)
 	case c == '=':
-		return handleChar(beforeAttributeValueHandler)
+		return handleChar("beforeAttributeValueHandler", beforeAttributeValueHandler)
 	case 'A' <= c && c <= 'Z':
 		lc := c + 0x0020 // lowercase it
 		newAttr := new(Attribute)
 		newAttr.Name = string(lc)
 		n.Attr = append(n.Attr, newAttr)
-		return handleChar(attributeNameHandler)
+		return handleChar("attributeNameHandler", attributeNameHandler)
 	case c == '"', c == '\'', c == '<':
 		// TODO parse error
 		fallthrough
@@ -899,7 +899,7 @@ func afterAttributeNameHandler(p *Parser, c rune) stateHandler {
 		newAttr := new(Attribute)
 		newAttr.Name = string(c)
 		n.Attr = append(n.Attr, newAttr)
-		return handleChar(attributeNameHandler)
+		return handleChar("attributeNameHandler", attributeNameHandler)
 	}
 	panic("Unreachable")
 }
@@ -913,7 +913,7 @@ func selfClosingTagStartHandler(p *Parser, c rune) stateHandler {
 		return dataStateHandlerSwitch(p)
 	default:
 		// TODO parse error reconsume as before attribute handler
-		return handleChar(beforeAttributeNameHandler)
+		return handleChar("beforeAttributeNameHandler", beforeAttributeNameHandler)
 	}
 	panic("Unreachable")
 }
