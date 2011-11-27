@@ -4,9 +4,9 @@ import (
     "bytes"
     "cache"
     "fmt"
+    "github.com/darkhelmet/web.go"
     "io/ioutil"
     "text/template"
-    "github.com/darkhelmet/web.go"
 )
 
 const TTL = 24 * 60 * 60 * 1e9 // 1 day

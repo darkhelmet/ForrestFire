@@ -6,6 +6,7 @@ import (
     "loggly"
     "os"
     "os/exec"
+    "path/filepath"
     "postmark"
     "runtime"
     "util"
@@ -16,7 +17,7 @@ const Friendly = "Sorry, conversion failed."
 var kindlegen string
 
 func init() {
-    kindlegen = fmt.Sprintf("bin/kindlegen-%s", runtime.GOOS)
+    kindlegen, _ = filepath.Abs(fmt.Sprintf("bin/kindlegen-%s", runtime.GOOS))
 }
 
 func fail(format string, args ...interface{}) {

@@ -84,22 +84,28 @@ func Send(j *job.Job) {
             defer writer.Close()
             encoder.Encode(payload)
         }()
+
         req, err := http.NewRequest("POST", Endpoint, reader)
         if err != nil {
             fail("Making HTTP Request failed: %s", err.Error())
         }
+
         setupHeaders(req)
         resp, err := client.Do(req)
         if err != nil {
             fail("Postmark failed: %s", err.Error())
         }
+
         defer resp.Body.Close()
         answer := util.ParseJSON(resp.Body, func(err error) {
             fail("Something bad happened with Postmark: %s", err.Error())
         })
+
         if answer["ErrorCode"] != nil {
             code := answer["ErrorCode"].(float64)
             switch code {
+            case 0:
+                // All is well
             case 300:
                 failFriendly("Your email appears invalid. Please try carefully remaking the bookmarklet.",
                     "Invalid email given: %s", j.Email)
