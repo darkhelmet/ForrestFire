@@ -32,6 +32,7 @@ func openFile(path string) *os.File {
 }
 
 func writeHTML(j *job.Job) {
+    // TODO: Refactor to use text/template
     template := `
     <html>
         <head>
@@ -56,7 +57,7 @@ func writeHTML(j *job.Job) {
 func Convert(j *job.Job) {
     go loggly.SwallowErrorAndNotify(j, func() {
         writeHTML(j)
-        cmd := exec.Command("kindlegen", []string{kindlegen, j.HTMLFilename()}...)
+        cmd := exec.Command(kindlegen, []string{j.HTMLFilename()}...)
         cmd.Dir = j.Root()
         out, err := cmd.CombinedOutput()
         if !util.FileExists(j.MobiFilePath()) {
