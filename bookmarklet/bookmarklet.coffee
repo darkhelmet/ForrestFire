@@ -1,4 +1,10 @@
 ((url) ->
+  interval = (time, func) ->
+    setInterval(func, time)
+
+  timeout = (time, func) ->
+    setTimeout(func, time)
+
   request = if 'XDomainRequest' of window
     (url, success) ->
       xdr = new XDomainRequest()
@@ -36,33 +42,31 @@
   # TODO: Some sort of detection of a failure
   Tinderizer = () ->
     validHost = /tinderizer\.com/i
-    if !validHost.test(host)
-      if false #confirm("Kindlebility has been renamed to Tinderizer. Please remake your bookmark to ensure it continues to work after the domain completely changes!\n\nPlease click OK to visit the new website and remake your bookmarklet when we're done here.")
+    unless validHost.test(host)
+      if confirm("Kindlebility has been renamed to Tinderizer. Please remake your bookmark to ensure it continues to work after the domain completely changes!\n\nPlease click OK to visit the new website and remake your bookmarklet when we're done here.")
         redirect = true
 
     params = "?url=#{encodeURIComponent(url)}&email=#{encodeURIComponent(to)}&t=#{(new Date()).getTime()}"
     request "http://#{host}/ajax/submit.json" + params, (submit) ->
       notify(submit.message)
       if submit.limited || !submit.id
-        setTimeout((() ->
-          body.removeChild(div)
-        ), 2500)
+        timeout(2500, -> body.removeChild(div))
         return
 
       id = submit.id
-      timer = setInterval((() ->
+      timer = interval(500, ->
         request "http://#{host}/ajax/status/#{id}.json?t=#{(new Date()).getTime()}", (status) ->
           notify(status.message)
           if status.done
             clearInterval(timer)
-            setTimeout((() ->
+            timeout(2500, ->
               body.removeChild(div)
               window.location = 'http://tinderizer.com/' if redirect
-            ), 2500)
-      ), 500)
+            )
+      )
 
   checks = {
-    # "You need to run this on an article page! Main or home pages don't work very well.": new RegExp(escapeRegex(window.location.protocol + "//#{window.location.host}/") + '$'),
+    "You need to run this on an article page! Main or home pages don't work very well.": new RegExp(escapeRegex(window.location.protocol + "//#{window.location.host}/") + '$'),
     'There is nothing to do on about:blank!': /about:blank/,
     'You need to run this on a publicly accessible HTML page!': /\.(pdf|jpg)$/i,
     'Run this on the raw page, not a Readability page!': /^https?:\/\/www.readability.com\/articles\//i
