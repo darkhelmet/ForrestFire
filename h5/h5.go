@@ -271,14 +271,9 @@ func textConsumer(p *Parser, chars ...rune) {
 	p.curr.data = append(p.curr.data, chars...) // ugly but safer
 }
 
-var memoized = make(map[func(*Parser, rune) stateHandler]stateHandler)
-
 // TODO(jwall): UNITTESTS!!!!
 func handleChar(h func(*Parser, rune) stateHandler) stateHandler {
-	if f, ok := memoized[h]; ok {
-		return f
-	}
-	memoized[h] = func(p *Parser) (stateHandler, error) {
+	return func(p *Parser) (stateHandler, error) {
 		c, err := p.nextInput()
 		if err != nil {
 			return nil, err
@@ -286,7 +281,6 @@ func handleChar(h func(*Parser, rune) stateHandler) stateHandler {
 		//fmt.Printf("YYY: char %c\n", c)
 		return h(p, c), nil
 	}
-	return memoized[h]
 }
 
 func startDoctypeStateHandler(p *Parser, c rune) stateHandler {
