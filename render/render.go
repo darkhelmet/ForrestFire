@@ -9,7 +9,7 @@ import (
     "text/template"
 )
 
-const TTL = 24 * 60 * 60 * 1e9 // 1 day
+const TTL = 24 * 60 * 60 // 1 day
 
 func expand(path string) string {
     return fmt.Sprintf("views/%s.tmpl", path)
@@ -41,20 +41,20 @@ func renderToString(name string, data map[string]string) string {
 func Page(page string, ctx *web.Context) string {
     yield := Chunk(page)
     footer := Chunk("footer")
-    return cache.CheckAndSet(fmt.Sprintf("page/%s", page), TTL, func() cache.Any {
+    return cache.Fetch(fmt.Sprintf("page/%s", page), TTL, func() string {
         return renderToString("layout", map[string]string{
             "yield":  yield,
             "donate": getViewFile("donate"),
             "footer": footer,
             "host":   ctx.Host,
         })
-    }).(string)
+    })
 }
 
 func Chunk(chunk string) string {
-    return cache.CheckAndSet(fmt.Sprintf("chunk/%s", chunk), TTL, func() cache.Any {
+    return cache.Fetch(fmt.Sprintf("chunk/%s", chunk), TTL, func() string {
         return renderToString(chunk, map[string]string{
             "donate": getViewFile("donate"),
         })
-    }).(string)
+    })
 }

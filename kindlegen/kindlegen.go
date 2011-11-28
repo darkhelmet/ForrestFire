@@ -17,7 +17,7 @@ const Friendly = "Sorry, conversion failed."
 var kindlegen string
 
 func init() {
-    kindlegen, _ = filepath.Abs(fmt.Sprintf("bin/kindlegen-%s", runtime.GOOS))
+    kindlegen, _ = filepath.Abs(fmt.Sprintf("vendor/kindlegen-%s", runtime.GOOS))
 }
 
 func fail(format string, args ...interface{}) {

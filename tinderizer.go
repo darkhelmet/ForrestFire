@@ -14,7 +14,7 @@ import (
 )
 
 const Limit = 10
-const TTL = 5 * 60 * 1e9 // 5 minutes
+const TTL = 5 * 60 // 5 minutes
 var done *regexp.Regexp
 var canonicalHost string
 var port string
@@ -71,7 +71,7 @@ func main() {
         isDone := true
 
         if v, err := cache.Get(id); err == nil {
-            message = v.(string)
+            message = v
             isDone = done.MatchString(message)
         } else {
             message = "No job with that ID found."
