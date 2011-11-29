@@ -17,7 +17,7 @@ var impl Cache
 func init() {
     server := env.GetDefault("MEMCACHE_SERVERS", "")
     if server == "" {
-       impl = new(dictCache)
+       impl = newDictCache()
     } else {
         if cn, err := mc.Dial("tcp", fmt.Sprintf("%s:11211", server)); err != nil {
             panic(err.Error())

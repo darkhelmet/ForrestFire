@@ -11,6 +11,12 @@ type dictCache struct {
     mutex sync.Mutex
 }
 
+func newDictCache() *dictCache {
+    c := new(dictCache)
+    c.dict = make(map[string]string)
+    return c
+}
+
 func (c *dictCache) reap(key string, ttl int) {
     // Convert seconds to nanoseconds
     <-time.After(int64(ttl) * 1e9)
