@@ -39,7 +39,6 @@
   div.style.fontSize = '12px'
   div.style.fontFamily = 'sans-serif'
 
-  # TODO: Some sort of detection of a failure
   Tinderizer = () ->
     validHost = /tinderizer\.com/i
     unless validHost.test(host)
@@ -47,23 +46,30 @@
         redirect = true
 
     params = "?url=#{encodeURIComponent(url)}&email=#{encodeURIComponent(to)}&t=#{(new Date()).getTime()}"
-    request "http://#{host}/ajax/submit.json" + params, (submit) ->
+    request "http://#{host}/ajax/submit.json#{params}", (submit) ->
       notify(submit.message)
-      if submit.limited || !submit.id
+      if submit.limited || !submit.id?
         timeout(2500, -> body.removeChild(div))
         return
 
+      done = false
+      timeout 20000, ->
+        # If we can't accomplish stuff in 20 seconds, something is borked.
+        done = true
+        alert("Okay, this is getting out of hand, something must have broken, I'm going to stop trying.")
+        body.removeChild(div)
+
       id = submit.id
-      timer = interval(500, ->
+      timer = interval 500, ->
+        clearInterval(timer) if done
         request "http://#{host}/ajax/status/#{id}.json?t=#{(new Date()).getTime()}", (status) ->
           notify(status.message)
           if status.done
+            done = true
             clearInterval(timer)
-            timeout(2500, ->
+            timeout 2500, ->
               body.removeChild(div)
               window.location = 'http://tinderizer.com/' if redirect
-            )
-      )
 
   checks = {
     "You need to run this on an article page! Main or home pages don't work very well.": new RegExp(escapeRegex(window.location.protocol + "//#{window.location.host}/") + '$'),

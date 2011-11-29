@@ -6,16 +6,21 @@ import (
     "fmt"
     "job"
     "net/http"
+    "reflect"
     "strings"
     "time"
 )
 
-var messages chan string
+type Stringer interface {
+    String() string
+}
 
 type Err struct {
     message  string
     friendly string
 }
+
+var messages chan string
 
 func NewError(message, friendly string) *Err {
     return &Err{message, friendly}
@@ -23,7 +28,7 @@ func NewError(message, friendly string) *Err {
 
 func init() {
     endpoint := env.Get("LOGGLY_URL")
-    messages = make(chan string, 25)
+    messages = make(chan string, 10)
     go func() {
         for message := range messages {
             http.Post(endpoint, "text/plain", strings.NewReader(message))
@@ -44,17 +49,42 @@ func Error(message string) {
     fmt.Println("Error:", message)
 }
 
+func unhandled(message string) {
+    Error(fmt.Sprintf("Unhandled/run-time panic: %s", message))
+}
+
 func formatError(j *job.Job, message string) string {
     return fmt.Sprintf("%s {url=%s, email=%s}", message, j.Url, j.Email)
+}
+
+func handleOtherErrors(r interface{}) {
+    // Handle the error interface
+    if err, ok := r.(error); ok {
+        unhandled(err.Error())
+        return
+    }
+
+    // Handler the Stringer interface
+    if str, ok := r.(Stringer); ok {
+        unhandled(str.String())
+        return
+    }
+
+    // Fallback and just use reflect to get a string of it
+    value := reflect.ValueOf(r)
+    unhandled(value.String())
 }
 
 func SwallowErrorAndNotify(j *job.Job, f func()) {
     defer func() {
         if r := recover(); r != nil {
-            err := r.(*Err)
-            j.Progress(err.friendly)
-            Error(formatError(j, err.message))
-            cleanup.Clean(j)
+            if err, ok := r.(*Err); ok {
+                j.Progress(err.friendly)
+                Error(formatError(j, err.message))
+                cleanup.Clean(j)
+            }
+
+            handleOtherErrors(r)
         }
     }()
     f()
@@ -63,7 +93,11 @@ func SwallowErrorAndNotify(j *job.Job, f func()) {
 func SwallowError(f func()) {
     defer func() {
         if r := recover(); r != nil {
-            Error(r.(string))
+            if str, ok := r.(string); ok {
+                Error(str)
+            }
+
+            handleOtherErrors(r)
         }
     }()
     f()
