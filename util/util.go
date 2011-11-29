@@ -12,6 +12,12 @@ import (
 
 type ErrorFunc func(error)
 
+func Must(err error) {
+    if err != nil {
+        panic(err.Error())
+    }
+}
+
 func GetUrlFileExtension(uri, def string) string {
     url, err := url.Parse(uri)
     if err != nil {

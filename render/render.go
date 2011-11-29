@@ -1,12 +1,11 @@
 package render
 
 import (
-    "bytes"
     "cache"
     "fmt"
     "github.com/darkhelmet/web.go"
     "io/ioutil"
-    "text/template"
+    "template"
 )
 
 const TTL = 24 * 60 * 60 // 1 day
@@ -20,29 +19,15 @@ func getViewFile(file string) string {
     return string(bytes)
 }
 
-func getTemplate(name string) *template.Template {
-    tmpl, err := template.ParseFile(expand(name))
-    if err != nil {
-        panic(err.Error())
-    }
-    return tmpl
-}
-
-func renderToString(name string, data map[string]string) string {
-    var buffer bytes.Buffer
-    tmpl := getTemplate(name)
-    err := tmpl.Execute(&buffer, data)
-    if err != nil {
-        panic(err.Error())
-    }
-    return buffer.String()
+func render(name string, data interface{}) string {
+    return template.RenderToString(name, getViewFile(name), data)
 }
 
 func Page(page string, ctx *web.Context) string {
     yield := Chunk(page)
     footer := Chunk("footer")
     return cache.Fetch(fmt.Sprintf("page/%s", page), TTL, func() string {
-        return renderToString("layout", map[string]string{
+        return render("layout", map[string]string{
             "yield":  yield,
             "donate": getViewFile("donate"),
             "footer": footer,
@@ -53,7 +38,7 @@ func Page(page string, ctx *web.Context) string {
 
 func Chunk(chunk string) string {
     return cache.Fetch(fmt.Sprintf("chunk/%s", chunk), TTL, func() string {
-        return renderToString(chunk, map[string]string{
+        return render(chunk, map[string]string{
             "donate": getViewFile("donate"),
         })
     })
