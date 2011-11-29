@@ -1,7 +1,5 @@
 package postmark
 
-// TODO: Look through FogBugz and async.rb to see what I'm catching
-
 import (
     "cleanup"
     "encoding/json"
@@ -80,10 +78,10 @@ func Send(j *job.Job) {
 
         reader, writer := io.Pipe()
         encoder := json.NewEncoder(writer)
-        go func() {
+        go loggly.SwallowError(func() {
             defer writer.Close()
             encoder.Encode(payload)
-        }()
+        })
 
         req, err := http.NewRequest("POST", Endpoint, reader)
         if err != nil {
