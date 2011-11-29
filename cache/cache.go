@@ -2,8 +2,6 @@ package cache
 
 import (
     "env"
-    "fmt"
-    "github.com/bmizerany/mc.go"
 )
 
 type Cache interface {
@@ -17,19 +15,9 @@ var impl Cache
 func init() {
     server := env.GetDefault("MEMCACHE_SERVERS", "")
     if server == "" {
-       impl = newDictCache()
+        impl = newDictCache()
     } else {
-        if cn, err := mc.Dial("tcp", fmt.Sprintf("%s:11211", server)); err != nil {
-            panic(err.Error())
-        } else {
-            username := env.GetDefault("MEMCACHE_USERNAME", "")
-            password := env.GetDefault("MEMCACHE_PASSWORD", "")
-            if err = cn.Auth(username, password); err != nil {
-                panic(err.Error())
-            } else {
-                impl = &mcCache{cn}
-            }
-        }
+        impl = newMemcacheCache(server, env.GetDefault("MEMCACHE_USERNAME", ""), env.GetDefault("MEMCACHE_PASSWORD", ""))
     }
 }
 
