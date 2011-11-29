@@ -7,7 +7,7 @@ import (
 )
 
 type dictCache struct {
-    dict map[string]string
+    dict  map[string]string
     mutex sync.Mutex
 }
 
