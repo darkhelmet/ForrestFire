@@ -9,6 +9,7 @@ import (
     "path/filepath"
     "postmark"
     "runtime"
+    "template"
     "util"
 )
 
@@ -33,21 +34,20 @@ func openFile(path string) *os.File {
 }
 
 func writeHTML(j *job.Job) {
-    // TODO: Refactor to use text/template
-    template := `
+    tmpl := `
     <html>
         <head>
             <meta content="text/html, charset=utf-8" http-equiv="Content-Type" />
-            <meta content="%s (%s)" name="author" />
-            <title>%s</title>
+            <meta content="{{.Author}} ({{.Domain}})" name="author" />
+            <title>{{.Title}}</title>
         </head>
         <body>
-            <h1>%s</h1>
-            %s
+            <h1>{{.Title}}</h1>
+            {{.HTML}}
         </body>
     </html>
     `
-    html := fmt.Sprintf(template, j.Author, j.Domain, j.Title, j.Title, j.HTML())
+    html := template.RenderToString(j.Title, tmpl, j)
     file := openFile(j.HTMLFilePath())
     defer file.Close()
     if _, err := file.WriteString(html); err != nil {
