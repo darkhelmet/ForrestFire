@@ -1,6 +1,7 @@
 package main
 
 import (
+    "blacklist"
     "bookmarklet"
     "cache"
     "encoding/json"
@@ -52,16 +53,29 @@ func handleRedirect(ctx *web.Context, f func() string) {
 func main() {
     done = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
     web.Get("/ajax/submit.json", func(ctx *web.Context) {
-        // TODO: Rate limiting
         // TODO: Blacklisting
         startJson(ctx)
         j := job.New(ctx.Params["email"], ctx.Params["url"])
-        cache.Set(j.KeyString(), "Working...", TTL)
-        extractor.Extract(j)
-        renderJson(ctx, JSON{
-            "message": "Submitted! Hang tight...",
-            "id":      j.KeyString(),
-        })
+        if j.Url == nil {
+            // URL failed to parse for some bizarre reason
+            blacklist.Blacklist(j.Url)
+            renderJson(ctx, JSON{
+                "message": "Sorry, but this URL doesn't look like it'll work.",
+            })
+        } else {
+            if blacklist.IsBlacklisted(j.Url) {
+                renderJson(ctx, JSON{
+                    "message": "Sorry but this URL has proven to not work, and has been blacklisted.",
+                })
+            } else {
+                j.Progress("Working...")
+                extractor.Extract(j)
+                renderJson(ctx, JSON{
+                    "message": "Submitted! Hang tight...",
+                    "id":      j.KeyString(),
+                })
+            }
+        }
     })
 
     web.Get("/ajax/status/(.*).json", func(ctx *web.Context, id string) {

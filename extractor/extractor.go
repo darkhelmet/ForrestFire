@@ -1,6 +1,7 @@
 package extractor
 
 import (
+    "blacklist"
     "crypto/sha1"
     "env"
     "fmt"
@@ -106,25 +107,22 @@ func makeRoot(j *job.Job) {
     }
 }
 
-func checkDoc(data JSON) {
+func checkDoc(data JSON, j *job.Job) {
     if data["error"] != nil && data["error"].(bool) {
+        blacklist.Blacklist(j.Url)
         fail("Readability failed: %s", data["messages"].(string))
     }
     if notParsed.MatchString(data["title"].(string)) {
+        blacklist.Blacklist(j.Url)
         fail("Readability failed, article could not be parsed.")
     }
 }
 
 func Extract(j *job.Job) {
-    if j.Url == nil {
-        j.Progress("This URL appears invalid. Sorry :(")
-        return
-    }
-
     go loggly.SwallowErrorAndNotify(j, func() {
         makeRoot(j)
         data := downloadAndParse(j)
-        checkDoc(data)
+        checkDoc(data, j)
         doc := parseHTML(data["content"].(string))
         j.Doc = rewriteAndDownloadImages(j, doc)
         j.Title = data["title"].(string)
