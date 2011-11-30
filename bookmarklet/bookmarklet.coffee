@@ -53,7 +53,7 @@
         return
 
       done = false
-      timeout 20000, ->
+      broken = timeout 20000, ->
         # If we can't accomplish stuff in 20 seconds, something is borked.
         done = true
         alert("Okay, this is getting out of hand, something must have broken, I'm going to stop trying.")
@@ -66,6 +66,7 @@
           notify(status.message)
           if status.done
             done = true
+            clearTimeout(broken)
             clearInterval(timer)
             timeout 2500, ->
               body.removeChild(div)
