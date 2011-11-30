@@ -36,7 +36,7 @@ func Pipe(w io.Writer, r io.Reader, expected int64, f ErrorFunc) {
     if err != nil {
         f(err)
     }
-    if written != expected {
+    if expected > 0 && written != expected {
         loggly.Notice(fmt.Sprintf("written != expected: %d != %d", written, expected))
     }
 }
