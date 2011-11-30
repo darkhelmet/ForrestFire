@@ -28,8 +28,7 @@ func (c *dictCache) reap(key string, ttl int) {
 func (c *dictCache) Get(key string) (string, error) {
     c.mutex.Lock()
     defer c.mutex.Unlock()
-    v, ok := c.dict[key]
-    if ok {
+    if v, ok := c.dict[key]; ok {
         return v, nil
     }
     return "", errors.New("not found")
@@ -38,8 +37,7 @@ func (c *dictCache) Get(key string) (string, error) {
 func (c *dictCache) Set(key, data string, ttl int) {
     c.mutex.Lock()
     defer c.mutex.Unlock()
-    _, ok := c.dict[key]
-    if !ok {
+    if _, ok := c.dict[key]; !ok {
         // Item not in the cache, so crank up the reaper for it
         go c.reap(key, ttl)
     }
