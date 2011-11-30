@@ -34,7 +34,8 @@
     div.innerHTML = message
     div.appendChild(document.createTextNode(' '))
 
-  div.style.width = '300px'
+  div.style.minWidth = '300px'
+  div.style.width = 'auto'
   div.style.height = '30px'
   div.style.fontSize = '12px'
   div.style.fontFamily = 'sans-serif'
