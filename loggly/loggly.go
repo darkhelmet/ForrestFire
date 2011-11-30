@@ -31,6 +31,7 @@ func init() {
     messages = make(chan string, 10)
     go func() {
         for message := range messages {
+            println(message)
             http.Post(endpoint, "text/plain", strings.NewReader(message))
         }
     }()
@@ -46,7 +47,6 @@ func Notice(message string) {
 
 func Error(message string) {
     send("ERROR", message)
-    fmt.Println("Error:", message)
 }
 
 func unhandled(message string) {
