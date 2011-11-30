@@ -57,7 +57,7 @@ func formatError(j *job.Job, message string) string {
     return fmt.Sprintf("%s {url=%s, email=%s}", message, j.Url, j.Email)
 }
 
-func handleOtherErrors(r interface{}) {
+func handleErrors(r interface{}) {
     // Handle the error interface
     if err, ok := r.(error); ok {
         unhandled(err.Error())
@@ -82,9 +82,9 @@ func SwallowErrorAndNotify(j *job.Job, f func()) {
                 j.Progress(err.friendly)
                 Error(formatError(j, err.message))
                 cleanup.Clean(j)
+            } else {
+                handleErrors(r)
             }
-
-            handleOtherErrors(r)
         }
     }()
     f()
@@ -93,11 +93,7 @@ func SwallowErrorAndNotify(j *job.Job, f func()) {
 func SwallowError(f func()) {
     defer func() {
         if r := recover(); r != nil {
-            if str, ok := r.(string); ok {
-                Error(str)
-            }
-
-            handleOtherErrors(r)
+            handleErrors(r)
         }
     }()
     f()
