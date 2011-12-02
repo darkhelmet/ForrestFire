@@ -53,7 +53,6 @@ func handleRedirect(ctx *web.Context, f func() string) {
 func main() {
     done = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
     web.Get("/ajax/submit.json", func(ctx *web.Context) {
-        // TODO: Blacklisting
         startJson(ctx)
         j := job.New(ctx.Params["email"], ctx.Params["url"])
         if j.Url == nil {
