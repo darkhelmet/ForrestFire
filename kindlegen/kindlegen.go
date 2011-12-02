@@ -44,6 +44,9 @@ func writeHTML(j *job.Job) {
         <body>
             <h1>{{.Title}}</h1>
             {{.HTML}}
+            <hr />
+            <p>Originally from <a href="{{.Url}}">{{.Url}}</a></p>
+            <p>Sent with <a href="http://Tinderizer.com/">Tinderizer</a></p>
         </body>
     </html>
     `
