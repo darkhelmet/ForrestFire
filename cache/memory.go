@@ -19,7 +19,7 @@ func newDictCache() *dictCache {
 
 func (c *dictCache) reap(key string, ttl int) {
     // Convert seconds to nanoseconds
-    <-time.After(int64(ttl) * 1e9)
+    <-time.After(time.Duration(int64(ttl) * 1e9))
     c.mutex.Lock()
     defer c.mutex.Unlock()
     delete(c.dict, key)

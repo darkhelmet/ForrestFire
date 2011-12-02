@@ -11,8 +11,7 @@ const TTL = 24 * 60 * 60 // 1 day
 
 func hash(uri *url.URL) string {
     hash := sha1.New()
-    hash.Write([]byte(uri.String()))
-    return fmt.Sprintf("%x", hash.Sum())
+    return fmt.Sprintf("%x", hash.Sum([]byte(uri.String())))
 }
 
 func IsBlacklisted(uri *url.URL) bool {

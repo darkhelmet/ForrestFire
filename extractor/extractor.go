@@ -79,8 +79,7 @@ func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
     t := transform.NewTransform(doc)
     fix := transform.TransformAttrib("src", func(uri string) string {
         hash.Reset()
-        hash.Write([]byte(uri))
-        altered := fmt.Sprintf("%x%s", hash.Sum(), util.GetUrlFileExtension(uri, ".jpg"))
+        altered := fmt.Sprintf("%x%s", hash.Sum([]byte(uri)), util.GetUrlFileExtension(uri, ".jpg"))
         wg.Add(1)
         go loggly.SwallowError(func() {
             defer wg.Done()

@@ -20,7 +20,7 @@ type Job struct {
     Email  string
     Url    *url.URL
     Key    uuid.UUID
-    Time   *time.Time
+    Time   time.Time
     Doc    *h5.Node
     Title  string
     Author string
@@ -30,14 +30,14 @@ type Job struct {
 func New(email, uri string) *Job {
     u, _ := url.ParseWithReference(uri)
     key := uuid.NewUUID()
-    return &Job{email, u, key, time.UTC(), nil, "", "", ""}
+    return &Job{email, u, key, time.Now().UTC(), nil, "", "", ""}
 }
 
 func (j *Job) Hash() string {
     hash := sha1.New()
     hash.Write([]byte(j.Url.String()))
     hash.Write([]byte(j.Time.String()))
-    return fmt.Sprintf("%x", hash.Sum())
+    return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
 func (j *Job) KeyString() string {

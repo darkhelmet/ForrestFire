@@ -58,7 +58,7 @@ func Send(j *job.Job) {
         if stat, err := os.Stat(j.MobiFilePath()); err != nil {
             fail("Something weird happen. Mobi is missing in postmark.go: %s", err.Error())
         } else {
-            if stat.Size > MaxAttachmentSize {
+            if stat.Size() > MaxAttachmentSize {
                 blacklist.Blacklist(j.Url)
                 failFriendly("Sorry, this article is too big to send!", "URL %s is too big", j.Url.String())
             }

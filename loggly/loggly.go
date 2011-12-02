@@ -38,7 +38,7 @@ func init() {
 }
 
 func send(level, message string) {
-    messages <- fmt.Sprintf("*** %s *** - %s - %s", level, time.UTC().Format(time.RFC3339), message)
+    messages <- fmt.Sprintf("*** %s *** - %s - %s", level, time.Now().UTC().Format(time.RFC3339), message)
 }
 
 func Notice(message string) {
