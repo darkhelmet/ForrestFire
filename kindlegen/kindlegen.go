@@ -21,14 +21,10 @@ func init() {
     logger = loggly.NewLogger("kindlegen", "Sorry, conversion failed.")
 }
 
-func fail(format string, args ...interface{}) {
-    panic(logger.NewError(fmt.Sprintf(format, args...)))
-}
-
 func openFile(path string) *os.File {
     file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {
-        fail("Failed opening file: %s", err.Error())
+        logger.Fail("Failed opening file: %s", err.Error())
     }
     return file
 }
@@ -54,7 +50,7 @@ func writeHTML(j *job.Job) {
     file := openFile(j.HTMLFilePath())
     defer file.Close()
     if _, err := file.WriteString(html); err != nil {
-        fail("Failed writing HTML file: %s", err.Error())
+        logger.Fail("Failed writing HTML file: %s", err.Error())
     }
 }
 
@@ -65,7 +61,7 @@ func Convert(j *job.Job) {
         cmd.Dir = j.Root()
         out, err := cmd.CombinedOutput()
         if !util.FileExists(j.MobiFilePath()) {
-            fail("Failed running kindlegen: %s {output=%s}", err.Error(), string(out))
+            logger.Fail("Failed running kindlegen: %s {output=%s}", err.Error(), string(out))
         }
         j.Progress("Conversion complete...")
         postmark.Send(j)

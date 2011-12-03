@@ -117,6 +117,14 @@ func (l *Logger) NewError(message string) *Err {
     return l.NewFriendlyError(message, l.friendly)
 }
 
+func (l *Logger) Fail(format string, args ...interface{}) {
+    panic(l.NewError(fmt.Sprintf(format, args...)))
+}
+
+func (l *Logger) FailFriendly(friendly, format string, args ...interface{}) {
+    panic(l.NewFriendlyError(fmt.Sprintf(format, args...), friendly))
+}
+
 func (l *Logger) unhandled(message string) {
     l.Unhandled(fmt.Sprintf("Unhandled/run-time panic: %s", message))
 }

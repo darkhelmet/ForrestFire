@@ -33,10 +33,6 @@ func init() {
     logger = loggly.NewLogger("extractor", "Sorry, extraction failed.")
 }
 
-func fail(format string, args ...interface{}) {
-    panic(logger.NewError(fmt.Sprintf(format, args...)))
-}
-
 func buildReadabilityUrl(u string) string {
     return fmt.Sprintf("%s?url=%s&token=%s", Readability, url.QueryEscape(u), url.QueryEscape(token))
 }
@@ -44,11 +40,11 @@ func buildReadabilityUrl(u string) string {
 func downloadAndParse(j *job.Job) JSON {
     resp, err := http.Get(buildReadabilityUrl(j.Url.String()))
     if err != nil {
-        fail("Readability Error: %s", err.Error())
+        logger.Fail("Readability Error: %s", err.Error())
     }
     defer resp.Body.Close()
     return util.ParseJSON(resp.Body, func(err error) {
-        fail("JSON Parsing Error: %s", err.Error())
+        logger.Fail("JSON Parsing Error: %s", err.Error())
     })
 }
 
@@ -96,25 +92,25 @@ func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
 func parseHTML(content string) *h5.Node {
     doc, err := transform.NewDoc(content)
     if err != nil {
-        fail("HTML Parsing Error: %s", err.Error())
+        logger.Fail("HTML Parsing Error: %s", err.Error())
     }
     return doc
 }
 
 func makeRoot(j *job.Job) {
     if err := os.MkdirAll(j.Root(), 0755); err != nil {
-        fail("Failed to make working directory: %s", err.Error())
+        logger.Fail("Failed to make working directory: %s", err.Error())
     }
 }
 
 func checkDoc(data JSON, j *job.Job) {
     if data["error"] != nil && data["error"].(bool) {
         blacklist.Blacklist(j.Url)
-        fail("Readability failed: %s", data["messages"].(string))
+        logger.Fail("Readability failed: %s", data["messages"].(string))
     }
     if notParsed.MatchString(data["title"].(string)) {
         blacklist.Blacklist(j.Url)
-        fail("Readability failed, article could not be parsed.")
+        logger.Fail("Readability failed, article could not be parsed.")
     }
 }
 
