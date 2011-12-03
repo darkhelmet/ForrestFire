@@ -22,14 +22,14 @@ type Err struct {
 }
 
 type Logger struct {
-    scope    string
+    area     string
     friendly string
 }
 
 var messages chan map[string]interface{}
 
-func NewLogger(scope, friendly string) *Logger {
-    return &Logger{scope, friendly}
+func NewLogger(area, friendly string) *Logger {
+    return &Logger{area, friendly}
 }
 
 func init() {
@@ -76,7 +76,7 @@ func (l *Logger) Unhandled(message string) {
 
 func (l *Logger) JobError(j *job.Job, message string) {
     send(map[string]interface{}{
-        "scope":    l.scope,
+        "area":     l.area,
         "severity": "error",
         "message":  message,
         "url":      j.Url,
