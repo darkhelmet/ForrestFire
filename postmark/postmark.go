@@ -2,11 +2,11 @@ package postmark
 
 import (
     "blacklist"
+    "bytes"
     "cleanup"
     "encoding/json"
     "env"
     "fmt"
-    "io"
     "io/ioutil"
     "job"
     "loggly"
@@ -79,15 +79,10 @@ func Send(j *job.Job) {
             },
         }
 
-        // FIXME: Refactor to not use a goroutine with json.Marshal...
-        reader, writer := io.Pipe()
-        encoder := json.NewEncoder(writer)
-        go logger.SwallowError(func() {
-            defer writer.Close()
-            encoder.Encode(payload)
-        })
+        var buffer bytes.Buffer
+        json.NewEncoder(&buffer).Encode(payload)
 
-        req, err := http.NewRequest("POST", Endpoint, reader)
+        req, err := http.NewRequest("POST", Endpoint, &buffer)
         if err != nil {
             fail("Making HTTP Request failed: %s", err.Error())
         }
