@@ -10,7 +10,5 @@ func Sha1(args ...[]byte) string {
     for _, arg := range args {
         hash.Write(arg)
     }
-    formatted := fmt.Sprintf("%x", hash.Sum(nil))
-    println(formatted)
-    return formatted
+    return fmt.Sprintf("%x", hash.Sum(nil))
 }
