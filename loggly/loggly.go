@@ -76,6 +76,7 @@ func (l *Logger) Unhandled(message string) {
 
 func (l *Logger) JobError(j *job.Job, message string) {
     send(map[string]interface{}{
+        "scope":    l.scope,
         "severity": "error",
         "message":  message,
         "url":      j.Url,
