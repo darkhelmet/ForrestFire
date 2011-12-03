@@ -12,6 +12,12 @@ import (
 
 type ErrorFunc func(error)
 
+var logger *loggly.Logger
+
+func init() {
+    logger = loggly.NewLogger("utils", "Something broke")
+}
+
 func Must(err error) {
     if err != nil {
         panic(err.Error())
@@ -37,7 +43,7 @@ func Pipe(w io.Writer, r io.Reader, expected int64, f ErrorFunc) {
         f(err)
     }
     if expected > 0 && written != expected {
-        loggly.Notice(fmt.Sprintf("written != expected: %d != %d", written, expected))
+        logger.Notice(fmt.Sprintf("written != expected: %d != %d", written, expected))
     }
 }
 

@@ -18,25 +18,26 @@ import (
 type Any interface{}
 
 const MaxAttachmentSize = 10485760
-const Friendly = "Sorry, email sending failed."
 const Subject = "convert"
 const Endpoint = "https://api.postmarkapp.com/email"
 const AuthHeader = "X-Postmark-Server-Token"
 
 var from, token string
 var client http.Client
+var logger *loggly.Logger
 
 func init() {
     from = env.Get("FROM")
     token = env.Get("POSTMARK_TOKEN")
+    logger = loggly.NewLogger("postmark", "Sorry, email sending failed.")
 }
 
 func fail(format string, args ...interface{}) {
-    failFriendly(Friendly, format, args...)
+    panic(logger.NewError(fmt.Sprintf(format, args...)))
 }
 
 func failFriendly(friendly, format string, args ...interface{}) {
-    panic(loggly.NewError(fmt.Sprintf(format, args...), friendly))
+    panic(logger.NewFriendlyError(fmt.Sprintf(format, args...), friendly))
 }
 
 func readFile(path string) []byte {
@@ -54,7 +55,7 @@ func setupHeaders(req *http.Request) {
 }
 
 func Send(j *job.Job) {
-    go loggly.SwallowErrorAndNotify(j, func() {
+    go logger.SwallowErrorAndNotify(j, func() {
         if stat, err := os.Stat(j.MobiFilePath()); err != nil {
             fail("Something weird happen. Mobi is missing in postmark.go: %s", err.Error())
         } else {
@@ -78,9 +79,10 @@ func Send(j *job.Job) {
             },
         }
 
+        // FIXME: Refactor to not use a goroutine with json.Marshal...
         reader, writer := io.Pipe()
         encoder := json.NewEncoder(writer)
-        go loggly.SwallowError(func() {
+        go logger.SwallowError(func() {
             defer writer.Close()
             encoder.Encode(payload)
         })
@@ -102,7 +104,7 @@ func Send(j *job.Job) {
         })
 
         if answer["ErrorCode"] != nil {
-            code := answer["ErrorCode"].(float64)
+            code := int(answer["ErrorCode"].(float64))
             switch code {
             case 0:
                 // All is well
@@ -110,7 +112,7 @@ func Send(j *job.Job) {
                 failFriendly("Your email appears invalid. Please try carefully remaking the bookmarklet.",
                     "Invalid email given: %s", j.Email)
             default:
-                loggly.Error(fmt.Sprintf("%s", answer))
+                fail("Unknown error code from Postmark: %d, %s", code, answer)
             }
         }
 

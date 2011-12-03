@@ -20,20 +20,21 @@ import (
 
 const DefaultAuthor = "Tinderizer"
 const Readability = "https://readability.com/api/content/v1/parser"
-const Friendly = "Sorry, extraction failed."
 
 type JSON map[string]interface{}
 
 var token string
 var notParsed *regexp.Regexp
+var logger *loggly.Logger
 
 func init() {
     token = env.Get("READABILITY_TOKEN")
     notParsed = regexp.MustCompile("(?i:Article Could not be Parsed)")
+    logger = loggly.NewLogger("extractor", "Sorry, extraction failed.")
 }
 
 func fail(format string, args ...interface{}) {
-    panic(loggly.NewError(fmt.Sprintf(format, args...), Friendly))
+    panic(logger.NewError(fmt.Sprintf(format, args...)))
 }
 
 func buildReadabilityUrl(u string) string {
@@ -81,7 +82,7 @@ func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
         hash.Reset()
         altered := fmt.Sprintf("%x%s", hash.Sum([]byte(uri)), util.GetUrlFileExtension(uri, ".jpg"))
         wg.Add(1)
-        go loggly.SwallowError(func() {
+        go logger.SwallowError(func() {
             defer wg.Done()
             downloadToFile(uri, fmt.Sprintf("%s/%s", root, altered))
         })
@@ -118,7 +119,7 @@ func checkDoc(data JSON, j *job.Job) {
 }
 
 func Extract(j *job.Job) {
-    go loggly.SwallowErrorAndNotify(j, func() {
+    go logger.SwallowErrorAndNotify(j, func() {
         makeRoot(j)
         data := downloadAndParse(j)
         checkDoc(data, j)

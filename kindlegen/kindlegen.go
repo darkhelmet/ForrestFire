@@ -13,16 +13,16 @@ import (
     "util"
 )
 
-const Friendly = "Sorry, conversion failed."
-
 var kindlegen string
+var logger *loggly.Logger
 
 func init() {
     kindlegen, _ = filepath.Abs(fmt.Sprintf("vendor/kindlegen-%s", runtime.GOOS))
+    logger = loggly.NewLogger("kindlegen", "Sorry, conversion failed.")
 }
 
 func fail(format string, args ...interface{}) {
-    panic(loggly.NewError(fmt.Sprintf(format, args...), Friendly))
+    panic(logger.NewError(fmt.Sprintf(format, args...)))
 }
 
 func openFile(path string) *os.File {
@@ -59,7 +59,7 @@ func writeHTML(j *job.Job) {
 }
 
 func Convert(j *job.Job) {
-    go loggly.SwallowErrorAndNotify(j, func() {
+    go logger.SwallowErrorAndNotify(j, func() {
         writeHTML(j)
         cmd := exec.Command(kindlegen, []string{j.HTMLFilename()}...)
         cmd.Dir = j.Root()
