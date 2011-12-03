@@ -3,10 +3,13 @@ package cache
 import (
     "fmt"
     "github.com/bmizerany/mc.go"
+    "io"
+    "syscall"
 )
 
 type mcCache struct {
-    conn *mc.Conn
+    conn     *mc.Conn
+    server   string
     username string
     password string
 }
@@ -16,13 +19,18 @@ func log(action, key string, err error) {
 }
 
 func newMemcacheCache(server, username, password string) (c *mcCache) {
-    if cn, err := mc.Dial("tcp", fmt.Sprintf("%s:11211", server)); err != nil {
+    c = &mcCache{nil, fmt.Sprintf("%s:11211", server), username, password}
+    c.connect()
+    c.auth()
+    return
+}
+
+func (c *mcCache) connect() {
+    if cn, err := mc.Dial("tcp", c.server); err != nil {
         panic(err.Error())
     } else {
-        c = &mcCache{cn, username, password}
-        c.auth()
+        c.conn = cn
     }
-    return
 }
 
 func (c *mcCache) auth() {
@@ -31,26 +39,48 @@ func (c *mcCache) auth() {
     }
 }
 
-func (c *mcCache) handleError(action, key string, err error) {
-    if err == mc.ErrAuthRequired {
+func (c *mcCache) handleError(action, key string, err error) bool {
+    switch err {
+    case io.EOF, syscall.ECONNRESET:
+        // Lost connection? Try reconnecting
+        c.connect()
+        // And of course we have to auth again
+        fallthrough
+    case mc.ErrAuthRequired:
         c.auth()
-    } else {
+        return true
+    case mc.ErrNotFound:
+        // Cool story bro
+    default:
         log(action, key, err)
     }
+    return false
 }
 
 func (c *mcCache) Get(key string) (string, error) {
+    return c.rget(key, 10)
+}
+
+func (c *mcCache) rget(key string, limit int) (string, error) {
     value, _, _, err := c.conn.Get(key)
     if err != nil {
-        c.handleError("get", key, err)
+        if c.handleError("get", key, err) && limit > 0 {
+            return c.rget(key, limit-1)
+        }
     }
     return value, err
 }
 
 func (c *mcCache) Set(key, data string, ttl int) {
+    c.rset(key, data, ttl, 10)
+}
+
+func (c *mcCache) rset(key, data string, ttl, limit int) {
     // Don't worry about errors, live on the edge
     if err := c.conn.Set(key, data, 0, 0, ttl); err != nil {
-        c.handleError("set", key, err)
+        if c.handleError("set", key, err) && limit > 0 {
+            c.rset(key, data, ttl, limit-1)
+        }
     }
 }
 
