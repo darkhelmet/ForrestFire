@@ -74,9 +74,10 @@
               window.location = 'http://tinderizer.com/' if redirect
 
   checks = {
-    "You need to run this on an article page! Main or home pages don't work very well.": new RegExp(escapeRegex(window.location.protocol + "//#{window.location.host}/") + '$'),
-    'There is nothing to do on about:blank!': /about:blank/,
-    'You need to run this on a publicly accessible HTML page!': /\.(pdf|jpg)$/i,
+    "This doesn't work on local files.": /^file:/
+    "You need to run this on an article page! Main or home pages don't work very well.": new RegExp(escapeRegex(window.location.protocol + "//#{window.location.host}/") + '$')
+    'There is nothing to do on about:blank!': /about:blank/
+    'You need to run this on a publicly accessible HTML page!': /\.(pdf|jpg)$/i
     'Run this on the raw page, not a Readability page!': /^https?:\/\/www.readability.com\/articles\//i
   }
 
