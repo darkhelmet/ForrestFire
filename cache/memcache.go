@@ -7,6 +7,8 @@ import (
 
 type mcCache struct {
     conn *mc.Conn
+    username string
+    password string
 }
 
 func log(action, key string, err error) {
@@ -20,10 +22,14 @@ func newMemcacheCache(server, username, password string) (c *mcCache) {
         if err = cn.Auth(username, password); err != nil {
             panic(err.Error())
         } else {
-            c = &mcCache{cn}
+            c = &mcCache{cn, username, password}
         }
     }
     return
+}
+
+func (c *mcCache) auth() {
+    
 }
 
 func (c *mcCache) Get(key string) (string, error) {

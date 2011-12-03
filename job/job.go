@@ -1,9 +1,9 @@
 package job
 
 import (
-    "crypto/sha1"
     "fmt"
     "h5"
+    "hashie"
     "net/url"
     "time"
     "user"
@@ -34,10 +34,7 @@ func New(email, uri string) *Job {
 }
 
 func (j *Job) Hash() string {
-    hash := sha1.New()
-    hash.Write([]byte(j.Url.String()))
-    hash.Write([]byte(j.Time.String()))
-    return fmt.Sprintf("%x", hash.Sum(nil))
+    return hashie.Sha1([]byte(j.Url.String()), []byte(j.Time.String()))
 }
 
 func (j *Job) KeyString() string {
