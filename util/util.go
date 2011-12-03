@@ -5,9 +5,7 @@ import (
     "fmt"
     "io"
     "loggly"
-    "net/url"
     "os"
-    "strings"
 )
 
 type ErrorFunc func(error)
@@ -22,19 +20,6 @@ func Must(err error) {
     if err != nil {
         panic(err.Error())
     }
-}
-
-func GetUrlFileExtension(uri, def string) string {
-    url, err := url.Parse(uri)
-    if err != nil {
-        return def
-    }
-    path := url.Path
-    dot := strings.LastIndex(path, ".")
-    if dot == -1 {
-        return def
-    }
-    return path[dot:]
 }
 
 func Pipe(w io.Writer, r io.Reader, expected int64, f ErrorFunc) {

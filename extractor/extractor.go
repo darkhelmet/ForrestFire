@@ -2,10 +2,10 @@ package extractor
 
 import (
     "blacklist"
-    "crypto/sha1"
     "env"
     "fmt"
     "h5"
+    "hashie"
     "html/transform"
     "job"
     "kindlegen"
@@ -72,11 +72,9 @@ func downloadToFile(url, name string) {
 func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
     var wg sync.WaitGroup
     root := j.Root()
-    hash := sha1.New()
     t := transform.NewTransform(doc)
     fix := transform.TransformAttrib("src", func(uri string) string {
-        hash.Reset()
-        altered := fmt.Sprintf("%x%s", hash.Sum([]byte(uri)), util.GetUrlFileExtension(uri, ".jpg"))
+        altered := fmt.Sprintf("%x", hashie.Sha1([]byte(uri)))
         wg.Add(1)
         go logger.SwallowError(func() {
             defer wg.Done()
