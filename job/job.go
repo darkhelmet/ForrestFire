@@ -5,6 +5,8 @@ import (
     "h5"
     "hashie"
     "net/url"
+    "os"
+    "strings"
     "time"
     "user"
     "uuid"
@@ -53,12 +55,17 @@ func (j *Job) HTML() string {
     return j.Doc.String()
 }
 
+func (j *Job) filename(extension string) string {
+    safeName := strings.Replace(j.Title, string(os.PathSeparator), "-", -1)
+    return fmt.Sprintf("%s.%s", safeName, extension)
+}
+
 func (j *Job) HTMLFilename() string {
-    return fmt.Sprintf("%s.html", j.Title)
+    return j.filename("html")
 }
 
 func (j *Job) MobiFilename() string {
-    return fmt.Sprintf("%s.mobi", j.Title)
+    return j.filename("mobi")
 }
 
 func (j *Job) HTMLFilePath() string {
