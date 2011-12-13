@@ -701,7 +701,7 @@ func tagOpenHandler(p *Parser, c rune) stateHandler {
 		lc := c + 0x0020 // lowercase it
 		curr.data = []rune{lc}
 		return handleChar("tagNameHandler", tagNameHandler)
-	case 'a' <= c && c <= 'z':
+	case 'a' <= c && c <= 'z', c == '_', c == '-':
 		//fmt.Printf("ZZZ: opening a new tag\n")
 		curr := pushNode(p)
 		curr.Type = ElementNode
@@ -980,7 +980,7 @@ func endTagOpenHandler(p *Parser) (stateHandler, error) {
 		case 'A' <= c && c <= 'Z':
 			lc := c + 0x0020 // lowercase it
 			tag = append(tag, lc)
-		case 'a' <= c && c <= 'z', '0' <= c && c <= '9':
+		case 'a' <= c && c <= 'z', '0' <= c && c <= '9', c == '_', c == '-':
 			tag = append(tag, c)
 		default: // Bogus Comment state
 			tag = append(tag, c)
