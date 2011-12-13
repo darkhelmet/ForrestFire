@@ -20,14 +20,14 @@ func init() {
 }
 
 type Job struct {
-    Email  string
-    Url    *url.URL
-    Key    uuid.UUID
-    Time   time.Time
-    Doc    *h5.Node
-    Title  string
-    Author string
-    Domain string
+    Email        string
+    Url          *url.URL
+    Key          uuid.UUID
+    Time         time.Time
+    Doc          *h5.Node
+    Title        string
+    Author       string
+    Domain       string
     ErrorMessage string
 }
 
