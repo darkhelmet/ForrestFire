@@ -52,7 +52,7 @@ func Send(j *job.Job) {
             logger.Fail("Something weird happen. Mobi is missing in postmark.go: %s", err.Error())
         } else {
             if stat.Size() > MaxAttachmentSize {
-                blacklist.Blacklist(j.Url)
+                blacklist.Blacklist(j.Url.String())
                 logger.FailFriendly("Sorry, this article is too big to send!", "URL %s is too big", j.Url.String())
             }
         }
@@ -96,6 +96,7 @@ func Send(j *job.Job) {
             case 0:
                 // All is well
             case 300:
+                blacklist.Blacklist(j.Email)
                 logger.FailFriendly("Your email appears invalid. Please try carefully remaking the bookmarklet.",
                     "Invalid email given: %s", j.Email)
             default:

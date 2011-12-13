@@ -1,7 +1,6 @@
 package main
 
 import (
-    "blacklist"
     "bookmarklet"
     "cache"
     "encoding/json"
@@ -55,25 +54,17 @@ func main() {
     web.Get("/ajax/submit.json", func(ctx *web.Context) {
         startJson(ctx)
         j := job.New(ctx.Params["email"], ctx.Params["url"])
-        if j.Url == nil {
-            // URL failed to parse for some bizarre reason
-            blacklist.Blacklist(j.Url)
+        if j.IsValid() {
+            j.Progress("Working...")
+            extractor.Extract(j)
             renderJson(ctx, JSON{
-                "message": "Sorry, but this URL doesn't look like it'll work.",
+                "message": "Submitted! Hang tight...",
+                "id":      j.KeyString(),
             })
         } else {
-            if blacklist.IsBlacklisted(j.Url) {
-                renderJson(ctx, JSON{
-                    "message": "Sorry but this URL has proven to not work, and has been blacklisted.",
-                })
-            } else {
-                j.Progress("Working...")
-                extractor.Extract(j)
-                renderJson(ctx, JSON{
-                    "message": "Submitted! Hang tight...",
-                    "id":      j.KeyString(),
-                })
-            }
+            renderJson(ctx, JSON{
+                "message": j.ErrorMessage,
+            })
         }
     })
 

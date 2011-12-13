@@ -103,11 +103,11 @@ func makeRoot(j *job.Job) {
 
 func checkDoc(data JSON, j *job.Job) {
     if data["error"] != nil && data["error"].(bool) {
-        blacklist.Blacklist(j.Url)
+        blacklist.Blacklist(j.Url.String())
         logger.Fail("Readability failed: %s", data["messages"].(string))
     }
     if notParsed.MatchString(data["title"].(string)) {
-        blacklist.Blacklist(j.Url)
+        blacklist.Blacklist(j.Url.String())
         logger.Fail("Readability failed, article could not be parsed.")
     }
 }

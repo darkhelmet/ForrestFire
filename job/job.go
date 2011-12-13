@@ -1,6 +1,7 @@
 package job
 
 import (
+    "blacklist"
     "fmt"
     "h5"
     "hashie"
@@ -27,12 +28,13 @@ type Job struct {
     Title  string
     Author string
     Domain string
+    ErrorMessage string
 }
 
 func New(email, uri string) *Job {
     u, _ := url.ParseWithReference(uri)
     key := uuid.NewUUID()
-    return &Job{email, u, key, time.Now().UTC(), nil, "", "", ""}
+    return &Job{email, u, key, time.Now().UTC(), nil, "", "", "", ""}
 }
 
 func (j *Job) Hash() string {
@@ -74,4 +76,27 @@ func (j *Job) HTMLFilePath() string {
 
 func (j *Job) MobiFilePath() string {
     return fmt.Sprintf("%s/%s", j.Root(), j.MobiFilename())
+}
+
+func (j *Job) IsValid() bool {
+    // URL failed to parse
+    if j.Url == nil {
+        blacklist.Blacklist(j.Url.String())
+        j.ErrorMessage = "Sorry, but this URL doesn't look like it'll work."
+        return false
+    }
+
+    // URL is already blacklisted
+    if blacklist.IsBlacklisted(j.Url.String()) {
+        j.ErrorMessage = "Sorry, but this URL has proven to not work, and has been blacklisted."
+        return false
+    }
+
+    // Email is blacklisted
+    if blacklist.IsBlacklisted(j.Email) {
+        j.ErrorMessage = "Sorry, but this email has proven to not work. You might want to try carefully remaking your bookmarklet."
+        return false
+    }
+
+    return true
 }
