@@ -11,6 +11,7 @@ import (
     "job"
     "regexp"
     "render"
+    "runtime"
 )
 
 const Limit = 10
@@ -114,6 +115,21 @@ func main() {
     web.Get("/(faq|bugs|contact)", func(ctx *web.Context, page string) {
         handleRedirect(ctx, func() string {
             return render.Page(page, ctx)
+        })
+    })
+
+    web.Get("/debug.json", func(ctx *web.Context) {
+        startJson(ctx)
+        runtime.UpdateMemStats()
+        renderJson(ctx, JSON{
+            "version":    runtime.Version(),
+            "goroutines": runtime.Goroutines(),
+            "GOMAXPROCS": runtime.GOMAXPROCS(0),
+            "GOROOT":     runtime.GOROOT(),
+            "GOARCH":     runtime.GOARCH,
+            "GOOS":       runtime.GOOS,
+            "cgocalls":   runtime.Cgocalls(),
+            "memstats":   runtime.MemStats,
         })
     })
 
