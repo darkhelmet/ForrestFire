@@ -61,7 +61,7 @@
         body.removeChild(div)
 
       id = submit.id
-      timer = interval 1000, ->
+      timer = interval 500, ->
         clearInterval(timer) if done
         request "http://#{host}/ajax/status/#{id}.json?t=#{(new Date()).getTime()}", (status) ->
           notify(status.message)
