@@ -9,6 +9,7 @@ import (
     "fmt"
     "github.com/darkhelmet/web.go"
     "job"
+    "os"
     "regexp"
     "render"
     "runtime"
@@ -50,8 +51,17 @@ func handleRedirect(ctx *web.Context, f func() string) {
     }
 }
 
+func pwd() string {
+    cwd, err := os.Getwd()
+    if err != nil {
+        panic("wat")
+    }
+    return cwd
+}
+
 func main() {
     done = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
+    web.Config.StaticDir = pwd() + "/static"
     web.Get("/ajax/submit.json", func(ctx *web.Context) {
         startJson(ctx)
         j := job.New(ctx.Params["email"], ctx.Params["url"])

@@ -187,8 +187,8 @@ func insertionModeSwitch(p *Parser, n *Node) stateHandler {
 func dataStateHandlerSwitch(p *Parser) stateHandler {
     n := p.curr
     /*fmt.Printf(
-    "insertionMode: %v in dataStateHandlerSwitch with node: %v\n",
-    p.Mode, n)*/
+      "insertionMode: %v in dataStateHandlerSwitch with node: %v\n",
+      p.Mode, n)*/
     return insertionModeSwitch(p, n)
 }
 
