@@ -2,3 +2,4 @@ _obj
 *.6
 bin/
 pkg/
+src/tinderizer/tinderizer
