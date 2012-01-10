@@ -10,7 +10,7 @@ type Marker struct {
     f func() []byte
 }
 
-const CoffeeScriptCompile = "coffee -p -c bookmarklet/bookmarklet.coffee"
+const CoffeeScriptCompile = "coffee -p -c src/bookmarklet/bookmarklet.coffee"
 
 var bm Marker
 var bash string
