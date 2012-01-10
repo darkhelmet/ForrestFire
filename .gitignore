@@ -1,3 +1,4 @@
 _obj
 *.6
-ForrestFire
+bin/
+pkg/
