@@ -7,7 +7,7 @@ import (
     "env"
     "extractor"
     "fmt"
-    "github.com/darkhelmet/web.go"
+    "web"
     "job"
     "os"
     "regexp"
@@ -130,7 +130,8 @@ func main() {
 
     web.Get("/debug.json", func(ctx *web.Context) {
         startJson(ctx)
-        runtime.UpdateMemStats()
+        var ms runtime.MemStats
+        runtime.ReadMemStats(&ms)
         renderJson(ctx, JSON{
             "version":    runtime.Version(),
             "goroutines": runtime.Goroutines(),
@@ -139,7 +140,7 @@ func main() {
             "GOARCH":     runtime.GOARCH,
             "GOOS":       runtime.GOOS,
             "cgocalls":   runtime.Cgocalls(),
-            "memstats":   runtime.MemStats,
+            "memstats":   ms,
         })
     })
 

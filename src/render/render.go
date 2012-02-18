@@ -3,7 +3,7 @@ package render
 import (
     "cache"
     "fmt"
-    "github.com/darkhelmet/web.go"
+    "web"
     "io/ioutil"
     "template"
 )
