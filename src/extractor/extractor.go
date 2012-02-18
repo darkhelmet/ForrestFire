@@ -18,7 +18,6 @@ import (
     "util"
 )
 
-const DefaultAuthor = "Tinderizer"
 const Readability = "https://readability.com/api/content/v1/parser"
 
 type JSON map[string]interface{}
@@ -122,9 +121,7 @@ func Extract(j *job.Job) {
         j.Title = data["title"].(string)
         j.Domain = data["domain"].(string)
         author := data["author"]
-        if author == nil {
-            j.Author = DefaultAuthor
-        } else {
+        if author != nil {
             j.Author = author.(string)
         }
         j.Progress("Extraction complete...")

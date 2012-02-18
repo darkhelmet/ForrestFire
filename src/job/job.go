@@ -13,6 +13,8 @@ import (
     "uuid"
 )
 
+const DefaultAuthor = "Tinderizer"
+
 var tmp string
 
 func init() {
@@ -34,7 +36,7 @@ type Job struct {
 func New(email, uri string) *Job {
     u, _ := url.ParseWithReference(uri)
     key := uuid.NewUUID()
-    return &Job{email, u, key, time.Now().UTC(), nil, "", "", "", ""}
+    return &Job{email, u, key, time.Now().UTC(), nil, "", DefaultAuthor, "", ""}
 }
 
 func (j *Job) Hash() string {
