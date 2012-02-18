@@ -3,9 +3,9 @@ package render
 import (
     "cache"
     "fmt"
-    "web"
     "io/ioutil"
     "template"
+    "web"
 )
 
 const TTL = 24 * 60 * 60 // 1 day

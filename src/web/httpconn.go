@@ -1,8 +1,8 @@
 package web
 
 import (
-    "net/http"
     "bytes"
+    "net/http"
 )
 
 type httpConn struct {

@@ -4,14 +4,14 @@ import (
     "log"
     "net"
     "net/http"
+    "net/http/pprof"
+    "os"
+    "path"
     "reflect"
     "regexp"
     "runtime"
-    "time"
     "strconv"
-    "path"
-    "os"
-    "net/http/pprof"
+    "time"
 )
 
 type Server struct {
@@ -74,8 +74,6 @@ func (s *Server) safelyCall(function reflect.Value, args []reflect.Value) (resp 
     }()
     return function.Call(args), nil
 }
-
-
 
 //should the context be passed to the handler?
 func requiresContext(handlerType reflect.Type) bool {

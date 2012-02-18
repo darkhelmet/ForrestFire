@@ -2,15 +2,15 @@ package web
 
 import (
     "bytes"
-    "encoding/base64"
-    "io/ioutil"
-    "strconv"
-    "strings"
-    "mime"
-    "time"
-    "fmt"
     "crypto/hmac"
     "crypto/sha1"
+    "encoding/base64"
+    "fmt"
+    "io/ioutil"
+    "mime"
+    "strconv"
+    "strings"
+    "time"
 )
 
 type Context struct {
