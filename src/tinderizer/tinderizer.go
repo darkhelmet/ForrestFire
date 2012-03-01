@@ -134,12 +134,12 @@ func main() {
         runtime.ReadMemStats(&ms)
         renderJson(ctx, JSON{
             "version":    runtime.Version(),
-            "goroutines": runtime.Goroutines(),
+            "goroutines": runtime.NumGoroutine(),
             "GOMAXPROCS": runtime.GOMAXPROCS(0),
             "GOROOT":     runtime.GOROOT(),
             "GOARCH":     runtime.GOARCH,
             "GOOS":       runtime.GOOS,
-            "cgocalls":   runtime.Cgocalls(),
+            "cgocalls":   runtime.NumCgoCall(),
             "memstats":   ms,
         })
     })

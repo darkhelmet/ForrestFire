@@ -34,7 +34,7 @@ type Job struct {
 }
 
 func New(email, uri string) *Job {
-    u, _ := url.ParseWithReference(uri)
+    u, _ := url.Parse(uri)
     key := uuid.NewUUID()
     return &Job{email, u, key, time.Now().UTC(), nil, "", DefaultAuthor, "", ""}
 }

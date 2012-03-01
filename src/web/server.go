@@ -213,7 +213,7 @@ func (s *Server) Run(addr string) {
 
     mux.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
     mux.Handle("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
-    mux.Handle("/debug/pprof/heap", http.HandlerFunc(pprof.Heap))
+    mux.Handle("/debug/pprof/heap", http.HandlerFunc(pprof.Index))
     mux.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
     mux.Handle("/", s)
 
