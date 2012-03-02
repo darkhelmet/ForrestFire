@@ -1,1 +1,1 @@
-web: ./bin/tinderizer
+web: ./_bin/tinderizer
