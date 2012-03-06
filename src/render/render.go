@@ -5,7 +5,6 @@ import (
     "fmt"
     "io/ioutil"
     "template"
-    "web"
 )
 
 const TTL = 24 * 60 * 60 // 1 day
@@ -23,7 +22,7 @@ func render(name string, data interface{}) string {
     return template.RenderToString(name, getViewFile(name), data)
 }
 
-func Page(page string, ctx *web.Context) string {
+func Page(page, host string) string {
     yield := Chunk(page)
     footer := Chunk("footer")
     return cache.Fetch(fmt.Sprintf("page/%s", page), TTL, func() string {
@@ -31,7 +30,7 @@ func Page(page string, ctx *web.Context) string {
             "yield":  yield,
             "donate": getViewFile("donate"),
             "footer": footer,
-            "host":   ctx.Host,
+            "host":   host,
         })
     })
 }

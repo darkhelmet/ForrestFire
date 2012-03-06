@@ -33,17 +33,26 @@ func NewLogger(area, friendly string) *Logger {
 }
 
 func init() {
-    endpoint := env.Get("LOGGLY_URL")
+    endpoint := env.GetDefault("LOGGLY_URL", "")
     messages = make(chan map[string]interface{}, 10)
-    go func() {
+    reader := func(fn func(buffer *bytes.Buffer)) {
         for message := range messages {
-            var buffer bytes.Buffer
-            encoder := json.NewEncoder(&buffer)
-            encoder.Encode(message)
-            println(buffer.String())
-            http.Post(endpoint, "application/json", &buffer)
+            buffer := new(bytes.Buffer)
+            json.NewEncoder(buffer).Encode(message)
+            fn(buffer)
         }
-    }()
+    }
+    if endpoint == "" {
+        // No endpoint, just write to stdout
+        go reader(func(buffer *bytes.Buffer) {
+            println(buffer.String())
+        })
+    } else {
+        // We have an endpoint so actually post messages
+        go reader(func(buffer *bytes.Buffer) {
+            http.Post(endpoint, "application/json", buffer)
+        })
+    }
 }
 
 func send(payload map[string]interface{}) {
