@@ -18,8 +18,6 @@ import (
     "render"
 )
 
-const Limit = 10
-const TTL = 5 * 60 // 5 minutes
 var doneRegex *regexp.Regexp
 var canonicalHost string
 var port string
@@ -30,14 +28,6 @@ func init() {
     port = env.GetDefault("PORT", "8080")
     canonicalHost = env.GetDefault("CANONICAL_HOST", fmt.Sprintf("localhost:%s", port))
     doneRegex = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
-}
-
-func pwd() string {
-    cwd, err := os.Getwd()
-    if err != nil {
-        panic(err)
-    }
-    return cwd
 }
 
 func handleBookmarklet(req *web.Request) {
@@ -104,24 +94,25 @@ func redirectHandler(req *web.Request) {
     req.Respond(web.StatusMovedPermanently, web.HeaderLocation, url.String())
 }
 
-func errorHandler(req *web.Request, status int, reason error, header web.Header) {
-    fmt.Println(req, status, reason, header)
-}
-
 func main() {
+    submitRoute := "/ajax/submit.json"
+    statusRoute := "/ajax/status/<id:[^.]+>.json"
     router := web.NewRouter().
         Register("/", "GET", homeHandler).
         Register("/static/bookmarklet.js", "GET", handleBookmarklet).
         Register("/static/<path:.*>", "GET", web.DirectoryHandler("static", nil)).
         Register("/<page:(faq|bugs|contact)>", "GET", pageHandler).
         Register("/<chunk:(firefox|safari|chrome|ie|ios|kindle-email)>", "GET", chunkHandler).
-        Register("/ajax/submit.json", "GET", submitHandler).
-        Register("/ajax/status/<id:[^.]>.json", "GET", statusHandler).
+        Register(submitRoute, "GET", submitHandler).
+        Register(statusRoute, "GET", statusHandler).
         Register("/debug.json", "GET", expvar.ServeWeb).
         Register("/debug/pprof/<:.*>", "*", pprof.ServeWeb)
 
     redirector := web.NewRouter().
-        Register("/<splat:.*>", "GET", redirectHandler)
+        // These routes get matched in both places so they work everywhere.
+        Register(submitRoute, "GET", submitHandler).
+        Register(statusRoute, "GET", statusHandler).
+        Register("/<splat:>", "GET", redirectHandler)
 
     hostRouter := web.NewHostRouter(redirector).
         Register(canonicalHost, router)
