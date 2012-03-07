@@ -13,7 +13,6 @@ import (
     "github.com/garyburd/twister/web"
     "io"
     "job"
-    "os"
     "regexp"
     "render"
 )
