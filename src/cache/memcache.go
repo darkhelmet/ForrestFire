@@ -2,7 +2,7 @@ package cache
 
 import (
     "fmt"
-    "github.com/darkhelmet/mcgo"
+    "github.com/bmizerany/mc"
     "io"
     "syscall"
 )
