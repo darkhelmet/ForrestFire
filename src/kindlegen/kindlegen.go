@@ -15,9 +15,29 @@ import (
 
 var kindlegen string
 var logger *loggly.Logger
+var tmpl = `
+<html>
+    <head>
+        <meta content="text/html, charset=utf-8" http-equiv="Content-Type" />
+        <meta content="{{.Author | html}} ({{.Domain | html}})" name="author" />
+        <title>{{.Title | html}}</title>
+    </head>
+    <body>
+        <h1>{{.Title | html}}</h1>
+        {{.HTML}}
+        <hr />
+        <p>Originally from <a href="{{.Url}}">{{.Url}}</a></p>
+        <p>Sent with <a href="http://Tinderizer.com/">Tinderizer</a></p>
+    </body>
+</html>
+`
 
 func init() {
-    kindlegen, _ = filepath.Abs(fmt.Sprintf("vendor/kindlegen-%s", runtime.GOOS))
+    var err error
+    kindlegen, err = filepath.Abs(fmt.Sprintf("vendor/kindlegen-%s", runtime.GOOS))
+    if err != nil {
+        panic(err)
+    }
     logger = loggly.NewLogger("kindlegen", "Sorry, conversion failed.")
 }
 
@@ -30,22 +50,6 @@ func openFile(path string) *os.File {
 }
 
 func writeHTML(j *job.Job) {
-    tmpl := `
-    <html>
-        <head>
-            <meta content="text/html, charset=utf-8" http-equiv="Content-Type" />
-            <meta content="{{.Author}} ({{.Domain}})" name="author" />
-            <title>{{.Title}}</title>
-        </head>
-        <body>
-            <h1>{{.Title}}</h1>
-            {{.HTML}}
-            <hr />
-            <p>Originally from <a href="{{.Url}}">{{.Url}}</a></p>
-            <p>Sent with <a href="http://Tinderizer.com/">Tinderizer</a></p>
-        </body>
-    </html>
-    `
     html := template.RenderToString(j.Title, tmpl, j)
     file := openFile(j.HTMLFilePath())
     defer file.Close()
