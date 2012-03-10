@@ -27,7 +27,7 @@ func newMemcacheCache(server, username, password string) (c *mcCache) {
 
 func (c *mcCache) connect() {
     if cn, err := mc.Dial("tcp", c.server); err != nil {
-        panic(err.Error())
+        panic(err)
     } else {
         c.conn = cn
     }
@@ -35,7 +35,7 @@ func (c *mcCache) connect() {
 
 func (c *mcCache) auth() {
     if err := c.conn.Auth(c.username, c.password); err != nil {
-        panic(err.Error())
+        panic(err)
     }
 }
 
