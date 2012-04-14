@@ -17,10 +17,12 @@ import (
 
 type Any interface{}
 
-const MaxAttachmentSize = 10485760
-const Subject = "convert"
-const Endpoint = "https://api.postmarkapp.com/email"
-const AuthHeader = "X-Postmark-Server-Token"
+const (
+    MaxAttachmentSize = 10485760
+    Subject           = "convert"
+    Endpoint          = "https://api.postmarkapp.com/email"
+    AuthHeader        = "X-Postmark-Server-Token"
+)
 
 var from, token string
 var client http.Client
