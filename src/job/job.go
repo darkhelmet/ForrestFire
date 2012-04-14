@@ -3,7 +3,7 @@ package job
 import (
     "blacklist"
     "fmt"
-    "h5"
+    "github.com/darkhelmet/go-html-transform/h5"
     "hashie"
     "net/url"
     "os"
