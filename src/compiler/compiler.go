@@ -1,10 +1,10 @@
 package compiler
 
 import (
-    "net/http"
     "bytes"
     "io/ioutil"
     "mime/multipart"
+    "net/http"
 )
 
 const Endpoint = "http://compiler.herokuapp.com/"
