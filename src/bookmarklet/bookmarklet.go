@@ -1,34 +1,27 @@
 package bookmarklet
 
 import (
+    "compiler"
     "env"
     "fmt"
-    "os/exec"
+    "io/ioutil"
 )
 
 type Marker struct {
     f func() []byte
 }
 
-const CoffeeScriptCompile = "coffee -p -c src/bookmarklet/bookmarklet.coffee"
+const CoffeeScriptPath = "src/bookmarklet/bookmarklet.coffee"
 
+var script []byte
 var bm Marker
-var bash string
 
 func init() {
-    var err error
-    bash, err = exec.LookPath("bash")
+    cs, err := ioutil.ReadFile(CoffeeScriptPath)
     if err != nil {
-        panic("bash not found")
+        panic(fmt.Sprintf("Failed reading bookmarklet: %s", err))
     }
-
-    if _, e := exec.LookPath("coffee"); e != nil {
-        panic("coffee-script not found")
-    }
-
-    if _, e := exec.LookPath("uglifyjs"); e != nil {
-        panic("uglify-js not found")
-    }
+    script = cs
 
     precompile := env.GetDefault("BOOKMARKLET_PRECOMPILE", "")
     if precompile != "" {
@@ -48,15 +41,9 @@ func Javascript() []byte {
 }
 
 func Compile(uglifier bool) []byte {
-    script := CoffeeScriptCompile
-    if uglifier {
-        script = fmt.Sprintf("%s | uglifyjs", script)
-    }
-    args := []string{"-c", script}
-    cmd := exec.Command(bash, args...)
-    out, err := cmd.Output()
+    js, err := compiler.CoffeeScript(script, uglifier)
     if err != nil {
-        panic(fmt.Sprintf("Failed compiling: %s", err.Error()))
+        panic(fmt.Sprintf("Failed compiling bookmarklet: %s", err))
     }
-    return out
+    return js
 }
