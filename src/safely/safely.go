@@ -1,10 +1,10 @@
 package safely
 
 import (
-    "runtime/debug"
-    "log"
-    "job"
     "cleanup"
+    "job"
+    "log"
+    "runtime/debug"
 )
 
 const (
