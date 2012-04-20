@@ -2,9 +2,11 @@ package safely
 
 import (
     "cleanup"
+    "index/suffixarray"
     "job"
     "log"
     "runtime/debug"
+    "sort"
 )
 
 const (
@@ -24,6 +26,13 @@ func Ignore(logger *log.Logger, f func()) {
     f()
 }
 
+func pruneStack(stack []byte) []byte {
+    index := suffixarray.New(stack)
+    indexes := sort.IntSlice(index.Lookup([]byte{'\n'}, -1))
+    sort.Sort(indexes)
+    return stack[indexes[3]:]
+}
+
 func Do(logger *log.Logger, j *job.Job, progress string, f func()) {
     defer func() {
         if r := recover(); r != nil {
@@ -33,7 +42,7 @@ func Do(logger *log.Logger, j *job.Job, progress string, f func()) {
             } else {
                 logger.Printf("%v: %#v", r, j)
             }
-            debug.PrintStack()
+            logger.Printf("%s", pruneStack(debug.Stack()))
             j.Progress(progress)
             cleanup.Clean(j)
         }
