@@ -4,6 +4,8 @@ import (
     "fmt"
     "github.com/bmizerany/mc"
     "io"
+    "log"
+    "os"
     "syscall"
 )
 
@@ -14,9 +16,7 @@ type mcCache struct {
     password string
 }
 
-func log(action, key string, err error) {
-    println(fmt.Sprintf("memcached error in %s for key %s: %s", action, key, err.Error()))
-}
+var logger = log.New(os.Stdout, "[memcache] ", log.LstdFlags|log.Lmicroseconds)
 
 func newMemcacheCache(server, username, password string) (c *mcCache) {
     c = &mcCache{nil, fmt.Sprintf("%s:11211", server), username, password}
@@ -27,7 +27,7 @@ func newMemcacheCache(server, username, password string) (c *mcCache) {
 
 func (c *mcCache) connect() {
     if cn, err := mc.Dial("tcp", c.server); err != nil {
-        panic(err)
+        logger.Panicf("Error connecting to memcached: %s", err)
     } else {
         c.conn = cn
     }
@@ -35,7 +35,7 @@ func (c *mcCache) connect() {
 
 func (c *mcCache) auth() {
     if err := c.conn.Auth(c.username, c.password); err != nil {
-        panic(err)
+        logger.Panicf("Error authenticating with memcached: %s", err)
     }
 }
 
@@ -52,7 +52,7 @@ func (c *mcCache) handleError(action, key string, err error) bool {
     case mc.ErrNotFound:
         // Cool story bro
     default:
-        log(action, key, err)
+        logger.Panicf("memcached error in %s for key %s: %s", action, key, err)
     }
     return false
 }

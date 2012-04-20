@@ -11,9 +11,7 @@ type UUID []byte
 func NewUUID() UUID {
     uuid := make([]byte, 16)
 
-    _, err := io.ReadFull(rand.Reader, uuid)
-
-    if err != nil {
+    if _, err := io.ReadFull(rand.Reader, uuid); err != nil {
         panic("Failed to read random values")
     }
 

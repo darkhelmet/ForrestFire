@@ -2,19 +2,12 @@ package util
 
 import (
     "encoding/json"
-    "fmt"
     "io"
-    "loggly"
+    "log"
     "os"
 )
 
-type ErrorFunc func(error)
-
-var logger *loggly.Logger
-
-func init() {
-    logger = loggly.NewLogger("utils", "Something broke")
-}
+var logger = log.New(os.Stdout, "[util] ", log.LstdFlags|log.Lmicroseconds)
 
 func Must(err error) {
     if err != nil {
@@ -22,13 +15,13 @@ func Must(err error) {
     }
 }
 
-func Pipe(w io.Writer, r io.Reader, expected int64, f ErrorFunc) {
+func Pipe(w io.Writer, r io.Reader, expected int64, f func(error)) {
     written, err := io.Copy(w, r)
     if err != nil {
         f(err)
     }
     if expected > 0 && written != expected {
-        logger.Notice(fmt.Sprintf("written != expected: %d != %d", written, expected))
+        logger.Printf("written != expected: %d != %d", written, expected)
     }
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
     "bookmarklet"
+    "bytes"
     "cache"
     "encoding/json"
     "env"
@@ -11,22 +12,38 @@ import (
     "github.com/garyburd/twister/pprof"
     "github.com/garyburd/twister/server"
     "github.com/garyburd/twister/web"
+    "html/template"
     "io"
     "job"
+    "log"
+    "net"
+    "os"
     "regexp"
-    "render"
 )
-
-var doneRegex *regexp.Regexp
-var canonicalHost string
-var port string
 
 type JSON map[string]interface{}
 
+var doneRegex = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
+var canonicalHost = env.GetDefault("CANONICAL_HOST", fmt.Sprintf("localhost:%s", port))
+var port = env.GetDefault("PORT", "8080")
+var logger = log.New(os.Stdout, "[server] ", log.LstdFlags|log.Lmicroseconds)
+var templates = template.Must(template.ParseGlob("views/*.tmpl"))
+
 func init() {
-    port = env.GetDefault("PORT", "8080")
-    canonicalHost = env.GetDefault("CANONICAL_HOST", fmt.Sprintf("localhost:%s", port))
-    doneRegex = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
+    for _, t := range templates.Templates() {
+        fmt.Println(t.Name())
+    }
+}
+
+func renderPage(w io.Writer, page, host string) error {
+    buffer := new(bytes.Buffer)
+    if err := templates.ExecuteTemplate(buffer, page, nil); err != nil {
+        return err
+    }
+    return templates.ExecuteTemplate(w, "layout.tmpl", JSON{
+        "host":  host,
+        "yield": template.HTML(buffer.String()),
+    })
 }
 
 func handleBookmarklet(req *web.Request) {
@@ -36,17 +53,23 @@ func handleBookmarklet(req *web.Request) {
 
 func pageHandler(req *web.Request) {
     w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=utf-8")
-    io.WriteString(w, render.Page(req.URLParam["page"], canonicalHost))
+    if err := renderPage(w, fmt.Sprintf("%s.tmpl", req.URLParam["page"]), canonicalHost); err != nil {
+        logger.Printf("Failed rendering page: %s", err)
+    }
 }
 
 func chunkHandler(req *web.Request) {
     w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=utf-8")
-    io.WriteString(w, render.Chunk(req.URLParam["chunk"]))
+    if err := templates.ExecuteTemplate(w, fmt.Sprintf("%s.tmpl", req.URLParam["chunk"]), nil); err != nil {
+        logger.Printf("Failed rendering chunk: %s", err)
+    }
 }
 
 func homeHandler(req *web.Request) {
     w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=utf-8")
-    io.WriteString(w, render.Page("index", canonicalHost))
+    if err := renderPage(w, "index.tmpl", canonicalHost); err != nil {
+        logger.Printf("Failed rendering index: %s", err)
+    }
 }
 
 func submitHandler(req *web.Request) {
@@ -55,7 +78,7 @@ func submitHandler(req *web.Request) {
         "Access-Control-Allow-Origin", "*")
     encoder := json.NewEncoder(w)
     j := job.New(req.Param.Get("email"), req.Param.Get("url"))
-    if j.IsValid() {
+    if err, ok := j.IsValid(); ok {
         j.Progress("Working...")
         extractor.Extract(j)
         encoder.Encode(JSON{
@@ -64,7 +87,7 @@ func submitHandler(req *web.Request) {
         })
     } else {
         encoder.Encode(JSON{
-            "message": j.ErrorMessage,
+            "message": err,
         })
     }
 }
@@ -93,6 +116,14 @@ func redirectHandler(req *web.Request) {
     req.Respond(web.StatusMovedPermanently, web.HeaderLocation, url.String())
 }
 
+func ShortLogger(lr *server.LogRecord) {
+    if lr.Error != nil {
+        logger.Printf("%d %s %s %s\n", lr.Status, lr.Request.Method, lr.Request.URL, lr.Error)
+    } else {
+        logger.Printf("%d %s %s\n", lr.Status, lr.Request.Method, lr.Request.URL)
+    }
+}
+
 func main() {
     submitRoute := "/ajax/submit.json"
     statusRoute := "/ajax/status/<id:[^.]+>.json"
@@ -116,5 +147,18 @@ func main() {
     hostRouter := web.NewHostRouter(redirector).
         Register(canonicalHost, router)
 
-    server.Run(fmt.Sprintf("0.0.0.0:%s", port), hostRouter)
+    listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", port))
+    if err != nil {
+        logger.Fatalf("Failed to listen: %s", err)
+    }
+    defer listener.Close()
+    server := &server.Server{
+        Listener: listener,
+        Handler:  hostRouter,
+        Logger:   server.LoggerFunc(ShortLogger),
+    }
+    err = server.Serve()
+    if err != nil {
+        logger.Fatalf("Failed to server: %s", err)
+    }
 }

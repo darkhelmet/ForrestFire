@@ -1,10 +1,13 @@
 package cleanup
 
 import (
-    "job"
     "os"
 )
 
-func Clean(j *job.Job) {
-    go os.RemoveAll(j.Root())
+type rooter interface {
+    Root() string
+}
+
+func Clean(r rooter) {
+    go os.RemoveAll(r.Root())
 }
