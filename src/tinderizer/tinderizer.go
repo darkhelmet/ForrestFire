@@ -29,12 +29,6 @@ var port = env.GetDefault("PORT", "8080")
 var logger = log.New(os.Stdout, "[server] ", log.LstdFlags|log.Lmicroseconds)
 var templates = template.Must(template.ParseGlob("views/*.tmpl"))
 
-func init() {
-    for _, t := range templates.Templates() {
-        fmt.Println(t.Name())
-    }
-}
-
 func renderPage(w io.Writer, page, host string) error {
     buffer := new(bytes.Buffer)
     if err := templates.ExecuteTemplate(buffer, page, nil); err != nil {
