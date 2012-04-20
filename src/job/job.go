@@ -36,7 +36,7 @@ func New(email, uri string) *Job {
 }
 
 func (j *Job) filename(extension string) string {
-    safeName := strings.Replace(j.Title, string(os.PathSeparator), "-", -1)
+    safeName := strings.Replace(j.Title, string(os.PathSeparator), "", -1)
     return fmt.Sprintf("%s.%s", safeName, extension)
 }
 
