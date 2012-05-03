@@ -35,9 +35,11 @@ const (
 `
 )
 
-var kindlegen string
-var logger = log.New(os.Stdout, "[kindlegen] ", log.LstdFlags|log.Lmicroseconds)
-var template *T.Template
+var (
+    kindlegen string
+    template  *T.Template
+    logger    = log.New(os.Stdout, "[kindlegen] ", log.LstdFlags|log.Lmicroseconds)
+)
 
 func init() {
     var err error

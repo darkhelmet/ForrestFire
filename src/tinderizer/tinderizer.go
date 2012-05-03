@@ -5,9 +5,9 @@ import (
     "bytes"
     "cache"
     "encoding/json"
-    "env"
     "extractor"
     "fmt"
+    "github.com/darkhelmet/env"
     "github.com/garyburd/twister/expvar"
     "github.com/garyburd/twister/pprof"
     "github.com/garyburd/twister/server"
@@ -23,11 +23,13 @@ import (
 
 type JSON map[string]interface{}
 
-var doneRegex = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
-var canonicalHost = env.GetDefault("CANONICAL_HOST", fmt.Sprintf("localhost:%s", port))
-var port = env.GetDefault("PORT", "8080")
-var logger = log.New(os.Stdout, "[server] ", log.LstdFlags|log.Lmicroseconds)
-var templates = template.Must(template.ParseGlob("views/*.tmpl"))
+var (
+    doneRegex     = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
+    port          = env.IntDefault("PORT", 8080)
+    canonicalHost = env.StringDefaultF("CANONICAL_HOST", func() string { return fmt.Sprintf("localhost:%d", port) })
+    logger        = log.New(os.Stdout, "[server] ", log.LstdFlags|log.Lmicroseconds)
+    templates     = template.Must(template.ParseGlob("views/*.tmpl"))
+)
 
 func renderPage(w io.Writer, page, host string) error {
     buffer := new(bytes.Buffer)
@@ -141,7 +143,7 @@ func main() {
     hostRouter := web.NewHostRouter(redirector).
         Register(canonicalHost, router)
 
-    listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", port))
+    listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", port))
     if err != nil {
         logger.Fatalf("Failed to listen: %s", err)
     }

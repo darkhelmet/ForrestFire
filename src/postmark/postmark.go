@@ -5,8 +5,8 @@ import (
     "bytes"
     "cleanup"
     "encoding/json"
-    "env"
     "fmt"
+    "github.com/darkhelmet/env"
     "io/ioutil"
     "job"
     "log"
@@ -26,10 +26,12 @@ const (
     FriendlyMessage   = "Sorry, email sending failed."
 )
 
-var from = env.Get("FROM")
-var token = env.Get("POSTMARK_TOKEN")
-var logger = log.New(os.Stdout, "[postmark] ", log.LstdFlags|log.Lmicroseconds)
-var client http.Client
+var (
+    from   = env.String("FROM")
+    token  = env.String("POSTMARK_TOKEN")
+    logger = log.New(os.Stdout, "[postmark] ", log.LstdFlags|log.Lmicroseconds)
+    client http.Client
+)
 
 func readFile(path string) []byte {
     data, err := ioutil.ReadFile(path)

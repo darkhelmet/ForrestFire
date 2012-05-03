@@ -1,7 +1,7 @@
 package cache
 
 import (
-    "env"
+    "github.com/darkhelmet/env"
 )
 
 type Cache interface {
@@ -13,11 +13,11 @@ type Cache interface {
 var impl Cache
 
 func init() {
-    server := env.GetDefault("MEMCACHE_SERVERS", "")
+    server := env.StringDefault("MEMCACHE_SERVERS", "")
     if server == "" {
         impl = newDictCache()
     } else {
-        impl = newMemcacheCache(server, env.GetDefault("MEMCACHE_USERNAME", ""), env.GetDefault("MEMCACHE_PASSWORD", ""))
+        impl = newMemcacheCache(server, env.StringDefault("MEMCACHE_USERNAME", ""), env.StringDefault("MEMCACHE_PASSWORD", ""))
     }
 }
 

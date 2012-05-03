@@ -2,8 +2,8 @@ package extractor
 
 import (
     "blacklist"
-    "env"
     "fmt"
+    "github.com/darkhelmet/env"
     "github.com/darkhelmet/go-html-transform/h5"
     "github.com/darkhelmet/go-html-transform/html/transform"
     "hashie"
@@ -26,9 +26,11 @@ const (
 
 type JSON map[string]interface{}
 
-var token = env.Get("READABILITY_TOKEN")
-var notParsed = regexp.MustCompile("(?i:Article Could not be Parsed)")
-var logger = log.New(os.Stdout, "[extractor] ", log.LstdFlags|log.Lmicroseconds)
+var (
+    token     = env.String("READABILITY_TOKEN")
+    notParsed = regexp.MustCompile("(?i:Article Could not be Parsed)")
+    logger    = log.New(os.Stdout, "[extractor] ", log.LstdFlags|log.Lmicroseconds)
+)
 
 func buildReadabilityUrl(u string) string {
     return fmt.Sprintf("%s?url=%s&token=%s", Readability, url.QueryEscape(u), url.QueryEscape(token))

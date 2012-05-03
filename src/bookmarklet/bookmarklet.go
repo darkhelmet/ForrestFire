@@ -1,9 +1,10 @@
 package bookmarklet
 
 import (
-    "compiler"
-    "env"
+    "bytes"
     "fmt"
+    "github.com/darkhelmet/env"
+    "github.com/darkhelmet/webcompiler"
     "io/ioutil"
 )
 
@@ -13,8 +14,10 @@ type Marker struct {
 
 const CoffeeScriptPath = "src/bookmarklet/bookmarklet.coffee"
 
-var script []byte
-var bm Marker
+var (
+    script []byte
+    bm     Marker
+)
 
 func init() {
     cs, err := ioutil.ReadFile(CoffeeScriptPath)
@@ -23,7 +26,7 @@ func init() {
     }
     script = cs
 
-    precompile := env.GetDefault("BOOKMARKLET_PRECOMPILE", "")
+    precompile := env.StringDefault("BOOKMARKLET_PRECOMPILE", "")
     if precompile != "" {
         js := Compile(precompile == "ugly")
         bm = Marker{func() []byte {
@@ -41,7 +44,7 @@ func Javascript() []byte {
 }
 
 func Compile(uglifier bool) []byte {
-    js, err := compiler.CoffeeScript(script, uglifier)
+    js, err := webcompiler.CoffeeScript(bytes.NewReader(script), uglifier)
     if err != nil {
         panic(fmt.Sprintf("Failed compiling bookmarklet: %s", err))
     }
