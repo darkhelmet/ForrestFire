@@ -14,7 +14,7 @@ const (
 )
 
 var (
-    email = env.StringDefault("STAT_HAT_EMAIL", "")
+    email = env.StringDefault("STAT_HAT_KEY", "")
     Count func(string, int)
     Value func(string, float64)
 )
