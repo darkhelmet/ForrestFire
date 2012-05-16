@@ -4,6 +4,7 @@ import (
     "blacklist"
     "fmt"
     "github.com/darkhelmet/go-html-transform/h5"
+    "github.com/nu7hatch/gouuid"
     "hashie"
     "html/template"
     "net/url"
@@ -11,7 +12,6 @@ import (
     "strings"
     "time"
     "user"
-    "uuid"
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 type Job struct {
     Email  string
     Url    *url.URL
-    Key    uuid.UUID
+    Key    *uuid.UUID
     Doc    *h5.Node
     Title  string
     Author string
@@ -31,7 +31,10 @@ type Job struct {
 
 func New(email, uri string) *Job {
     u, _ := url.Parse(uri)
-    key := uuid.NewUUID()
+    key, err := uuid.NewV4()
+    if err != nil {
+        panic(fmt.Errorf("Failed generating UUID: %s", err))
+    }
     return &Job{email, u, key, nil, "", DefaultAuthor, ""}
 }
 
@@ -45,7 +48,7 @@ func (j *Job) GoString() string {
 }
 
 func (j *Job) Hash() string {
-    return hashie.Sha1([]byte(j.Url.String()), j.Key)
+    return hashie.Sha1([]byte(j.Url.String()), j.Key[:])
 }
 
 func (j *Job) KeyString() string {
