@@ -19,6 +19,7 @@ import (
     "net"
     "os"
     "regexp"
+    "stat"
 )
 
 type JSON map[string]interface{}
@@ -75,6 +76,7 @@ func submitHandler(req *web.Request) {
     encoder := json.NewEncoder(w)
     j := job.New(req.Param.Get("email"), req.Param.Get("url"))
     if err, ok := j.IsValid(); ok {
+        stat.Count(stat.SubmitSuccess, 1)
         j.Progress("Working...")
         extractor.Extract(j)
         encoder.Encode(JSON{
@@ -82,6 +84,7 @@ func submitHandler(req *web.Request) {
             "id":      j.KeyString(),
         })
     } else {
+        stat.Count(stat.SubmitBlacklist, 1)
         encoder.Encode(JSON{
             "message": err,
         })
@@ -106,6 +109,7 @@ func statusHandler(req *web.Request) {
 }
 
 func redirectHandler(req *web.Request) {
+    stat.Count(stat.HttpRedirect, 1)
     url := req.URL
     url.Host = canonicalHost
     url.Scheme = "http"
