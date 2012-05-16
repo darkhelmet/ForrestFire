@@ -3,7 +3,6 @@ package safely
 import (
     "cleanup"
     "index/suffixarray"
-    "job"
     "log"
     "runtime/debug"
     "sort"
@@ -15,6 +14,11 @@ const (
 
 type friendly interface {
     Friendly() string
+}
+
+type Jobber interface {
+    Root() string
+    Progress(string)
 }
 
 func Ignore(logger *log.Logger, f func()) {
@@ -33,7 +37,7 @@ func pruneStack(stack []byte) []byte {
     return stack[indexes[3]:]
 }
 
-func Do(logger *log.Logger, j *job.Job, progress string, f func()) {
+func Do(logger *log.Logger, j Jobber, progress string, f func()) {
     defer func() {
         if r := recover(); r != nil {
             if err, ok := r.(friendly); ok {
