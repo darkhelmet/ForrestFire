@@ -1,20 +1,20 @@
 package stat
 
 import (
-    "github.com/darkhelmet/stathatgo"
-    "github.com/darkhelmet/env"
     "fmt"
+    "github.com/darkhelmet/env"
+    "github.com/darkhelmet/stathatgo"
 )
 
 const (
-    Prefix = "[Tinderizer]"
-    SubmitSuccess = "submit.success"
+    Prefix          = "[Tinderizer]"
+    SubmitSuccess   = "submit.success"
     SubmitBlacklist = "submit.blacklist"
-    HttpRedirect = "http.redirect"
+    HttpRedirect    = "http.redirect"
 )
 
 var (
-    key = env.StringDefault("STAT_HAT_KEY", "")
+    key   = env.StringDefault("STAT_HAT_KEY", "")
     Count func(string, int)
     Value func(string, float64)
 )

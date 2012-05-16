@@ -22,7 +22,7 @@ var (
 func init() {
     cs, err := ioutil.ReadFile(CoffeeScriptPath)
     if err != nil {
-        panic(fmt.Sprintf("Failed reading bookmarklet: %s", err))
+        panic(fmt.Errorf("Failed reading bookmarklet: %s", err))
     }
     script = cs
 
@@ -46,7 +46,7 @@ func Javascript() []byte {
 func Compile(uglifier bool) []byte {
     js, err := webcompiler.CoffeeScript(bytes.NewReader(script), uglifier)
     if err != nil {
-        panic(fmt.Sprintf("Failed compiling bookmarklet: %s", err))
+        panic(fmt.Errorf("Failed compiling bookmarklet: %s", err))
     }
     return js
 }
