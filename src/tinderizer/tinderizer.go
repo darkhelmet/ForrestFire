@@ -89,6 +89,7 @@ func submitHandler(req *web.Request) {
             "message": err,
         })
     }
+    stat.Debug()
 }
 
 func statusHandler(req *web.Request) {

@@ -4,13 +4,16 @@ import (
     "fmt"
     "github.com/darkhelmet/env"
     "github.com/darkhelmet/stathatgo"
+    "runtime"
 )
 
 const (
-    Prefix          = "[Tinderizer]"
-    SubmitSuccess   = "submit.success"
-    SubmitBlacklist = "submit.blacklist"
-    HttpRedirect    = "http.redirect"
+    Prefix            = "[Tinderizer]"
+    SubmitSuccess     = "submit.success"
+    SubmitBlacklist   = "submit.blacklist"
+    HttpRedirect      = "http.redirect"
+    RuntimeGoroutines = "runtime.goroutines"
+    RuntimeMemory     = "runtime.memory"
 )
 
 var (
@@ -35,4 +38,13 @@ func count(name string, value int) {
 
 func value(name string, value float64) {
     stathat.PostEZValue(fmt.Sprintf("%s %s", Prefix, name), key, value)
+}
+
+func Debug() {
+    var ms runtime.MemStats
+    runtime.ReadMemStats(&ms)
+    // Yes, this could overflow the float,
+    // but this app is fairly low on usage, so it's fine.
+    Value(RuntimeMemory, float64(ms.Alloc))
+    Value(RuntimeGoroutines, float64(runtime.NumGoroutine()))
 }
