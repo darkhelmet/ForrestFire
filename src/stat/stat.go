@@ -14,6 +14,7 @@ const (
     HttpRedirect      = "http.redirect"
     RuntimeGoroutines = "runtime.goroutines"
     RuntimeMemory     = "runtime.memory"
+    OneMillion        = 1000000
 )
 
 var (
@@ -41,10 +42,20 @@ func value(name string, value float64) {
 }
 
 func Debug() {
+    Value(RuntimeMemory, allocInBaseTen())
+    Value(RuntimeGoroutines, float64(runtime.NumGoroutine()))
+}
+
+// Read amount of memory, but converted to base ten
+// so when stathat does math it's actually accurate.
+// They show 3.91M or something to mean 3.91 million,
+// but doing this math, it will end up being 3.whatever,
+// megabytes
+func allocInBaseTen() float64 {
     var ms runtime.MemStats
     runtime.ReadMemStats(&ms)
     // Yes, this could overflow the float,
     // but this app is fairly low on usage, so it's fine.
-    Value(RuntimeMemory, float64(ms.Alloc))
-    Value(RuntimeGoroutines, float64(runtime.NumGoroutine()))
+    alloc := float64(ms.Alloc)
+    return alloc / 1024 / 1024 * OneMillion
 }
