@@ -53,7 +53,7 @@ func init() {
 func openFile(path string) *os.File {
     file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {
-        logger.Panicf("Failed opening file: %s", err.Error())
+        logger.Panicf("Failed opening file: %s", err)
     }
     return file
 }
@@ -62,7 +62,7 @@ func writeHTML(j *job.Job) {
     file := openFile(j.HTMLFilePath())
     defer file.Close()
     if err := template.Execute(file, j); err != nil {
-        logger.Panicf("Failed rendering HTML to file: %s", err.Error())
+        logger.Panicf("Failed rendering HTML to file: %s", err)
     }
 }
 
@@ -73,7 +73,7 @@ func Convert(j *job.Job) {
         cmd.Dir = j.Root()
         out, err := cmd.CombinedOutput()
         if !util.FileExists(j.MobiFilePath()) {
-            logger.Panicf("Failed running kindlegen: %s {output=%s}", err.Error(), string(out))
+            logger.Panicf("Failed running kindlegen: %s {output=%s}", err, out)
         }
         j.Progress("Conversion complete...")
         postmark.Mail(j)

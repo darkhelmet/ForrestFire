@@ -39,18 +39,18 @@ func buildReadabilityUrl(u string) string {
 func downloadAndParse(j *job.Job) JSON {
     resp, err := http.Get(buildReadabilityUrl(j.Url.String()))
     if err != nil {
-        logger.Panicf("Readability Error: %s", err.Error())
+        logger.Panicf("Readability Error: %s", err)
     }
     defer resp.Body.Close()
     return util.ParseJSON(resp.Body, func(err error) {
-        logger.Panicf("JSON Parsing Error: %s", err.Error())
+        logger.Panicf("JSON Parsing Error: %s", err)
     })
 }
 
 func getImage(url string) *http.Response {
     resp, err := http.Get(url)
     if err != nil {
-        log.Panicf("Failed download image %s: %s", url, err.Error())
+        log.Panicf("Failed download image %s: %s", url, err)
     }
     return resp
 }
@@ -60,11 +60,11 @@ func downloadToFile(url, name string) {
     defer resp.Body.Close()
     file, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {
-        logger.Panicf("Failed opening file: %s", err.Error())
+        logger.Panicf("Failed opening file: %s", err)
     }
     defer file.Close()
     util.Pipe(file, resp.Body, resp.ContentLength, func(err error) {
-        logger.Panicf("Error with io.Copy: %s", err.Error())
+        logger.Panicf("Error with io.Copy: %s", err)
     })
 }
 
@@ -89,14 +89,14 @@ func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
 func parseHTML(content string) *h5.Node {
     doc, err := transform.NewDoc(content)
     if err != nil {
-        logger.Panicf("HTML Parsing Error: %s", err.Error())
+        logger.Panicf("HTML Parsing Error: %s", err)
     }
     return doc
 }
 
 func makeRoot(j *job.Job) {
     if err := os.MkdirAll(j.Root(), 0755); err != nil {
-        logger.Panicf("Failed to make working directory: %s", err.Error())
+        logger.Panicf("Failed to make working directory: %s", err)
     }
 }
 

@@ -36,7 +36,7 @@ var (
 func readFile(path string) []byte {
     data, err := ioutil.ReadFile(path)
     if err != nil {
-        logger.Panicf("Failed reading file: %s", err.Error())
+        logger.Panicf("Failed reading file: %s", err)
     }
     return data
 }
@@ -50,7 +50,7 @@ func setupHeaders(req *http.Request) {
 func Mail(j *job.Job) {
     go safely.Do(logger, j, FriendlyMessage, func() {
         if stat, err := os.Stat(j.MobiFilePath()); err != nil {
-            logger.Panicf("Something weird happen. Mobi is missing in postmark.go: %s", err.Error())
+            logger.Panicf("Something weird happened. Mobi is missing: %s", err)
         } else {
             if stat.Size() > MaxAttachmentSize {
                 blacklist.Blacklist(j.Url.String())
@@ -77,18 +77,18 @@ func Mail(j *job.Job) {
 
         req, err := http.NewRequest("POST", Endpoint, &buffer)
         if err != nil {
-            logger.Panicf("Making HTTP Request failed: %s", err.Error())
+            logger.Panicf("Making HTTP Request failed: %s", err)
         }
 
         setupHeaders(req)
         resp, err := client.Do(req)
         if err != nil {
-            logger.Panicf("Postmark failed: %s", err.Error())
+            logger.Panicf("Postmark failed: %s", err)
         }
 
         defer resp.Body.Close()
         answer := util.ParseJSON(resp.Body, func(err error) {
-            logger.Panicf("Something bad happened with Postmark: %s", err.Error())
+            logger.Panicf("Something bad happened with Postmark: %s", err)
         })
 
         if answer["ErrorCode"] != nil {
@@ -99,6 +99,8 @@ func Mail(j *job.Job) {
             case 300:
                 blacklist.Blacklist(j.Email)
                 failFriendly("Your email appears invalid. Please try carefully remaking the bookmarklet.")
+            case 406:
+                // Inactive recipient
             default:
                 logger.Panicf("Unknown error code from Postmark: %d, %s", code, answer)
             }
