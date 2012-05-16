@@ -75,7 +75,7 @@ func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
     fix := transform.TransformAttrib("src", func(uri string) string {
         altered := fmt.Sprintf("%x.jpg", hashie.Sha1([]byte(uri)))
         wg.Add(1)
-        go safely.Ignore(logger, func() {
+        go safely.Ignore(func() {
             defer wg.Done()
             downloadToFile(uri, fmt.Sprintf("%s/%s", root, altered))
         })
