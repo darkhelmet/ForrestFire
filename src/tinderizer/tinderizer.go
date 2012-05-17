@@ -32,6 +32,10 @@ var (
     templates     = template.Must(template.ParseGlob("views/*.tmpl"))
 )
 
+func init() {
+    stat.Count(stat.RuntimeBoot, 1)
+}
+
 func renderPage(w io.Writer, page, host string) error {
     buffer := new(bytes.Buffer)
     if err := templates.ExecuteTemplate(buffer, page, nil); err != nil {

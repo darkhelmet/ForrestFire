@@ -14,6 +14,7 @@ const (
     HttpRedirect      = "http.redirect"
     RuntimeGoroutines = "runtime.goroutines"
     RuntimeMemory     = "runtime.memory"
+    RuntimeBoot       = "runtime.boot"
     OneMillion        = 1000000
 )
 
