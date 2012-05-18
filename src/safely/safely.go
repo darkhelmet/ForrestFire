@@ -53,8 +53,8 @@ func Do(logger Logger, j Jobber, progress, statName string, f func()) {
             logger.Printf("%s", pruneStack(debug.Stack()))
             j.Progress(progress)
             cleanup.Clean(j)
+            stat.Count(statName, 1)
         }
-        stat.Count(statName, 1)
     }()
     f()
 }
