@@ -8,16 +8,22 @@ import (
 )
 
 const (
-    Prefix            = "[Tinderizer]"
-    SubmitSuccess     = "submit.success"
-    SubmitBlacklist   = "submit.blacklist"
-    HttpRedirect      = "http.redirect"
-    RuntimeGoroutines = "runtime.goroutines"
-    RuntimeMemory     = "runtime.memory"
-    RuntimeBoot       = "runtime.boot"
-    PostmarkTooBig    = "postmark.too-big"
-    ExtractorAuthor   = "extractor.author"
-    OneMillion        = 1000000
+    Prefix             = "[Tinderizer]"
+    SubmitSuccess      = "submit.success"
+    SubmitBlacklist    = "submit.blacklist"
+    HttpRedirect       = "http.redirect"
+    RuntimeGoroutines  = "runtime.goroutines"
+    RuntimeMemory      = "runtime.memory"
+    RuntimeBoot        = "runtime.boot"
+    KindlegenUnhandled = "kindlegen.unhandled"
+    PostmarkTooBig     = "postmark.too-big"
+    PostmarkInactive   = "postmark.inactive"
+    PostmarkBlacklist  = "postmark.blacklist"
+    PostmarkUnhandled  = "postmark.unhandled"
+    ExtractorAuthor    = "extractor.author"
+    ExtractorImage     = "extractor.image"
+    ExtractorUnhandled = "extractor.unhandled"
+    OneMillion         = 1000000
 )
 
 var (

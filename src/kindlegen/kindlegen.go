@@ -11,6 +11,7 @@ import (
     "postmark"
     "runtime"
     "safely"
+    "stat"
     "util"
 )
 
@@ -67,7 +68,7 @@ func writeHTML(j *job.Job) {
 }
 
 func Convert(j *job.Job) {
-    go safely.Do(logger, j, FriendlyMessage, func() {
+    go safely.Do(logger, j, FriendlyMessage, stat.KindlegenUnhandled, func() {
         writeHTML(j)
         cmd := exec.Command(kindlegen, []string{j.HTMLFilename()}...)
         cmd.Dir = j.Root()

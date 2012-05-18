@@ -61,6 +61,7 @@ func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
         go safely.Ignore(func() {
             defer wg.Done()
             downloader.downloadToFile(uri, altered)
+            stat.Count(stat.ExtractorImage, 1)
         })
         return altered
     })
@@ -96,7 +97,7 @@ func checkDoc(data JSON, j *job.Job) {
 }
 
 func Extract(j *job.Job) {
-    go safely.Do(logger, j, FriendlyMessage, func() {
+    go safely.Do(logger, j, FriendlyMessage, stat.ExtractorUnhandled, func() {
         makeRoot(j)
         data := downloadAndParse(j)
         checkDoc(data, j)

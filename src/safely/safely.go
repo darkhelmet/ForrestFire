@@ -5,6 +5,7 @@ import (
     "index/suffixarray"
     "runtime/debug"
     "sort"
+    "stat"
 )
 
 const (
@@ -40,7 +41,7 @@ func pruneStack(stack []byte) []byte {
     return stack[indexes[3]:]
 }
 
-func Do(logger Logger, j Jobber, progress string, f func()) {
+func Do(logger Logger, j Jobber, progress, statName string, f func()) {
     defer func() {
         if r := recover(); r != nil {
             if err, ok := r.(friendly); ok {
@@ -53,6 +54,7 @@ func Do(logger Logger, j Jobber, progress string, f func()) {
             j.Progress(progress)
             cleanup.Clean(j)
         }
+        stat.Count(statName, 1)
     }()
     f()
 }

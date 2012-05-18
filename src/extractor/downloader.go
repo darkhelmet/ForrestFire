@@ -1,21 +1,21 @@
 package extractor
 
 import (
-    "net/http"
-    "time"
     "fmt"
+    "net/http"
     "os"
+    "time"
     "util"
 )
 
 type downloader struct {
-    root string
+    root   string
     client *http.Client
 }
 
 func newDownloader(root string, timeout time.Duration, deadline time.Time) downloader {
     return downloader{
-        root: root,
+        root:   root,
         client: newTimeoutDeadlineDialer(timeout, deadline),
     }
 }

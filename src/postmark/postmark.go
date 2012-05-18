@@ -49,7 +49,7 @@ func setupHeaders(req *http.Request) {
 }
 
 func Mail(j *job.Job) {
-    go safely.Do(logger, j, FriendlyMessage, func() {
+    go safely.Do(logger, j, FriendlyMessage, stat.PostmarkUnhandled, func() {
         if st, err := os.Stat(j.MobiFilePath()); err != nil {
             logger.Panicf("Something weird happened. Mobi is missing: %s", err)
         } else {
@@ -100,9 +100,11 @@ func Mail(j *job.Job) {
                 // All is well
             case 300:
                 blacklist.Blacklist(j.Email)
+                stat.Count(stat.PostmarkBlacklist, 1)
                 failFriendly("Your email appears invalid. Please try carefully remaking the bookmarklet.")
             case 406:
                 // Inactive recipient
+                stat.Count(stat.PostmarkInactive, 1)
             default:
                 logger.Panicf("Unknown error code from Postmark: %d, %s", code, answer)
             }
