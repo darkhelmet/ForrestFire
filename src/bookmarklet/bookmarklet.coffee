@@ -54,8 +54,8 @@
         return
 
       done = false
-      broken = timeout 20000, ->
-        # If we can't accomplish stuff in 20 seconds, something is borked.
+      broken = timeout 30000, ->
+        # If we can't accomplish stuff in 30 seconds, something is borked.
         done = true
         alert("Okay, this is getting out of hand, something must have broken, I'm going to stop trying.")
         body.removeChild(div)

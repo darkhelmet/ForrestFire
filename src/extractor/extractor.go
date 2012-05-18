@@ -15,7 +15,9 @@ import (
     "os"
     "regexp"
     "safely"
+    "stat"
     "sync"
+    "time"
     "util"
 )
 
@@ -27,6 +29,8 @@ const (
 type JSON map[string]interface{}
 
 var (
+    timeout   = 5 * time.Second
+    deadline  = 10 * time.Second
     token     = env.String("READABILITY_TOKEN")
     notParsed = regexp.MustCompile("(?i:Article Could not be Parsed)")
     logger    = log.New(os.Stdout, "[extractor] ", log.LstdFlags|log.Lmicroseconds)
@@ -47,37 +51,16 @@ func downloadAndParse(j *job.Job) JSON {
     })
 }
 
-func getImage(url string) *http.Response {
-    resp, err := http.Get(url)
-    if err != nil {
-        log.Panicf("Failed download image %s: %s", url, err)
-    }
-    return resp
-}
-
-func downloadToFile(url, name string) {
-    resp := getImage(url)
-    defer resp.Body.Close()
-    file, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY, 0644)
-    if err != nil {
-        logger.Panicf("Failed opening file: %s", err)
-    }
-    defer file.Close()
-    util.Pipe(file, resp.Body, resp.ContentLength, func(err error) {
-        logger.Panicf("Error with io.Copy: %s", err)
-    })
-}
-
 func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
     var wg sync.WaitGroup
-    root := j.Root()
+    downloader := newDownloader(j.Root(), timeout, time.Now().Add(deadline))
     t := transform.NewTransform(doc)
     fix := transform.TransformAttrib("src", func(uri string) string {
         altered := fmt.Sprintf("%x.jpg", hashie.Sha1([]byte(uri)))
         wg.Add(1)
         go safely.Ignore(func() {
             defer wg.Done()
-            downloadToFile(uri, fmt.Sprintf("%s/%s", root, altered))
+            downloader.downloadToFile(uri, altered)
         })
         return altered
     })
@@ -123,6 +106,7 @@ func Extract(j *job.Job) {
         j.Domain = data["domain"].(string)
         if author := data["author"]; author != nil {
             j.Author = author.(string)
+            stat.Count(stat.ExtractorAuthor, 1)
         }
         j.Progress("Extraction complete...")
         kindlegen.Convert(j)

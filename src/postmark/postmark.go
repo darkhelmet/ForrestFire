@@ -13,6 +13,7 @@ import (
     "net/http"
     "os"
     "safely"
+    "stat"
     "util"
 )
 
@@ -49,10 +50,11 @@ func setupHeaders(req *http.Request) {
 
 func Mail(j *job.Job) {
     go safely.Do(logger, j, FriendlyMessage, func() {
-        if stat, err := os.Stat(j.MobiFilePath()); err != nil {
+        if st, err := os.Stat(j.MobiFilePath()); err != nil {
             logger.Panicf("Something weird happened. Mobi is missing: %s", err)
         } else {
-            if stat.Size() > MaxAttachmentSize {
+            if st.Size() > MaxAttachmentSize {
+                stat.Count(stat.PostmarkTooBig, 1)
                 blacklist.Blacklist(j.Url.String())
                 failFriendly("Sorry, this article is too big to send!")
             }

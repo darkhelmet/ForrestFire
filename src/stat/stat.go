@@ -15,6 +15,8 @@ const (
     RuntimeGoroutines = "runtime.goroutines"
     RuntimeMemory     = "runtime.memory"
     RuntimeBoot       = "runtime.boot"
+    PostmarkTooBig    = "postmark.too-big"
+    ExtractorAuthor   = "extractor.author"
     OneMillion        = 1000000
 )
 
