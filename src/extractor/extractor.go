@@ -33,7 +33,7 @@ var (
     deadline  = 10 * time.Second
     token     = env.String("READABILITY_TOKEN")
     notParsed = regexp.MustCompile("(?i:Article Could not be Parsed)")
-    logger    = log.New(os.Stdout, "[extractor] ", log.LstdFlags|log.Lmicroseconds)
+    logger    = log.New(os.Stdout, "[extractor] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
 )
 
 func buildReadabilityUrl(u string) string {

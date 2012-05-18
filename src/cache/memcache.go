@@ -3,6 +3,7 @@ package cache
 import (
     "fmt"
     "github.com/bmizerany/mc"
+    "github.com/darkhelmet/env"
     "io"
     "log"
     "os"
@@ -16,7 +17,7 @@ type mcCache struct {
     password string
 }
 
-var logger = log.New(os.Stdout, "[memcache] ", log.LstdFlags|log.Lmicroseconds)
+var logger = log.New(os.Stdout, "[memcache] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
 
 func newMemcacheCache(server, username, password string) (c *mcCache) {
     c = &mcCache{nil, fmt.Sprintf("%s:11211", server), username, password}

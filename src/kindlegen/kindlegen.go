@@ -2,6 +2,7 @@ package kindlegen
 
 import (
     "fmt"
+    "github.com/darkhelmet/env"
     T "html/template"
     "job"
     "log"
@@ -39,7 +40,7 @@ const (
 var (
     kindlegen string
     template  *T.Template
-    logger    = log.New(os.Stdout, "[kindlegen] ", log.LstdFlags|log.Lmicroseconds)
+    logger    = log.New(os.Stdout, "[kindlegen] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
 )
 
 func init() {

@@ -2,12 +2,13 @@ package util
 
 import (
     "encoding/json"
+    "github.com/darkhelmet/env"
     "io"
     "log"
     "os"
 )
 
-var logger = log.New(os.Stdout, "[util] ", log.LstdFlags|log.Lmicroseconds)
+var logger = log.New(os.Stdout, "[util] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
 
 func Must(err error) {
     if err != nil {

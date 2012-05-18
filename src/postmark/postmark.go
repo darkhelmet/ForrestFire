@@ -30,7 +30,7 @@ const (
 var (
     from   = env.String("FROM")
     token  = env.String("POSTMARK_TOKEN")
-    logger = log.New(os.Stdout, "[postmark] ", log.LstdFlags|log.Lmicroseconds)
+    logger = log.New(os.Stdout, "[postmark] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
     client http.Client
 )
 
