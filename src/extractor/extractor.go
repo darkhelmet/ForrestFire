@@ -53,14 +53,14 @@ func downloadAndParse(j *job.Job) JSON {
 
 func rewriteAndDownloadImages(j *job.Job, doc *h5.Node) *h5.Node {
     var wg sync.WaitGroup
-    downloader := newDownloader(j.Root(), timeout, time.Now().Add(deadline))
+    imageDownloader := newDownloader(j.Root(), timeout, time.Now().Add(deadline))
     t := transform.NewTransform(doc)
     fix := transform.TransformAttrib("src", func(uri string) string {
         altered := fmt.Sprintf("%x.jpg", hashie.Sha1([]byte(uri)))
         wg.Add(1)
         go safely.Ignore(func() {
             defer wg.Done()
-            downloader.downloadToFile(uri, altered)
+            imageDownloader.downloadToFile(uri, altered)
             stat.Count(stat.ExtractorImage, 1)
         })
         return altered
