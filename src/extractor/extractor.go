@@ -7,6 +7,7 @@ import (
     "github.com/darkhelmet/go-html-transform/h5"
     "github.com/darkhelmet/go-html-transform/html/transform"
     "hashie"
+    "io/ioutil"
     "job"
     "kindlegen"
     "log"
@@ -46,6 +47,10 @@ func downloadAndParse(j *job.Job) JSON {
         logger.Panicf("Readability Error: %s", err)
     }
     defer resp.Body.Close()
+    if resp.StatusCode != 200 {
+        body, err := ioutil.ReadAll(resp.Body)
+        logger.Panicf("Readability returned wrong error code (%d/%s): %s", resp.StatusCode, err, body)
+    }
     return util.ParseJSON(resp.Body, func(err error) {
         logger.Panicf("JSON Parsing Error: %s", err)
     })
