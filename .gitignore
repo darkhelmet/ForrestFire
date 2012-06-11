@@ -1,3 +1,4 @@
+tmp/
 _obj
 *.6
 bin/
@@ -5,3 +6,4 @@ _bin/
 pkg/
 src/tinderizer/tinderizer
 src/github.com/
+src/code.google.com/

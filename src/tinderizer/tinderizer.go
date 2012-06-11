@@ -4,6 +4,8 @@ import (
     "bookmarklet"
     "bytes"
     "cache"
+    "cleaner"
+    "emailer"
     "encoding/json"
     "extractor"
     "fmt"
@@ -12,9 +14,11 @@ import (
     "github.com/garyburd/twister/pprof"
     "github.com/garyburd/twister/server"
     "github.com/garyburd/twister/web"
+    "github.com/trustmaster/goflow"
     "html/template"
     "io"
-    "job"
+    J "job"
+    "kindlegen"
     "log"
     "net"
     "os"
@@ -30,15 +34,47 @@ var (
     canonicalHost = env.StringDefaultF("CANONICAL_HOST", func() string { return fmt.Sprintf("localhost:%d", port) })
     logger        = log.New(os.Stdout, "[server] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
     templates     = template.Must(template.ParseGlob("views/*.tmpl"))
+    newJobs       = make(chan J.Job, 1)
+    app           = NewApp()
 )
+
+type TinderizerApp struct {
+    flow.Graph
+}
 
 func init() {
     stat.Count(stat.RuntimeBoot, 1)
+    flow.RunNet(app)
+}
+
+func NewApp() *TinderizerApp {
+    a := new(TinderizerApp)
+    a.InitGraphState()
+    a.Add(extractor.New(), "extractor")
+    a.Add(kindlegen.New(), "kindlegen")
+    a.Add(emailer.New(), "emailer")
+    a.Add(cleaner.New(), "cleaner")
+
+    cleaning := make(chan J.Job, 4)
+
+    a.Connect("extractor", "Output", "kindlegen", "Input", make(chan J.Job, 1))
+    a.Connect("extractor", "Error", "cleaner", "Input", cleaning)
+
+    a.Connect("kindlegen", "Output", "emailer", "Input", make(chan J.Job, 1))
+    a.Connect("kindlegen", "Error", "cleaner", "Input", cleaning)
+
+    a.Connect("emailer", "Output", "cleaner", "Input", cleaning)
+    a.Connect("emailer", "Error", "cleaner", "Input", cleaning)
+
+    a.MapInPort("In", "extractor", "Input")
+    a.SetInPort("In", newJobs)
+
+    return a
 }
 
 func renderPage(w io.Writer, page, host string) error {
-    buffer := new(bytes.Buffer)
-    if err := templates.ExecuteTemplate(buffer, page, nil); err != nil {
+    var buffer bytes.Buffer
+    if err := templates.ExecuteTemplate(&buffer, page, nil); err != nil {
         return err
     }
     return templates.ExecuteTemplate(w, "layout.tmpl", JSON{
@@ -54,14 +90,16 @@ func handleBookmarklet(req *web.Request) {
 
 func pageHandler(req *web.Request) {
     w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=utf-8")
-    if err := renderPage(w, fmt.Sprintf("%s.tmpl", req.URLParam["page"]), canonicalHost); err != nil {
+    tmpl := fmt.Sprintf("%s.tmpl", req.URLParam["page"])
+    if err := renderPage(w, tmpl, canonicalHost); err != nil {
         logger.Printf("Failed rendering page: %s", err)
     }
 }
 
 func chunkHandler(req *web.Request) {
     w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=utf-8")
-    if err := templates.ExecuteTemplate(w, fmt.Sprintf("%s.tmpl", req.URLParam["chunk"]), nil); err != nil {
+    tmpl := fmt.Sprintf("%s.tmpl", req.URLParam["chunk"])
+    if err := templates.ExecuteTemplate(w, tmpl, nil); err != nil {
         logger.Printf("Failed rendering chunk: %s", err)
     }
 }
@@ -78,19 +116,19 @@ func submitHandler(req *web.Request) {
         web.HeaderContentType, "application/json; charset=utf-8",
         "Access-Control-Allow-Origin", "*")
     encoder := json.NewEncoder(w)
-    j := job.New(req.Param.Get("email"), req.Param.Get("url"))
-    if err, ok := j.IsValid(); ok {
+    job := J.New(req.Param.Get("email"), req.Param.Get("url"))
+    if err := job.Validate(); err == nil {
         stat.Count(stat.SubmitSuccess, 1)
-        j.Progress("Working...")
-        extractor.Extract(j)
+        job.Progress("Working...")
+        newJobs <- *job
         encoder.Encode(JSON{
             "message": "Submitted! Hang tight...",
-            "id":      j.KeyString(),
+            "id":      job.Key.String(),
         })
     } else {
         stat.Count(stat.SubmitBlacklist, 1)
         encoder.Encode(JSON{
-            "message": err,
+            "message": err.Error(),
         })
     }
     stat.Debug()

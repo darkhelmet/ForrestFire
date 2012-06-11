@@ -3,17 +3,14 @@ package kindlegen
 import (
     "fmt"
     "github.com/darkhelmet/env"
+    "github.com/trustmaster/goflow"
     T "html/template"
-    "job"
+    J "job"
     "log"
     "os"
     "os/exec"
     "path/filepath"
-    "postmark"
     "runtime"
-    "safely"
-    "stat"
-    "util"
 )
 
 const (
@@ -26,7 +23,7 @@ const (
         <title>{{.Title}}</title>
     </head>
     <body>
-        <h1>{{.Title | html}}</h1>
+        <h1>{{.Title}}</h1>
         {{.HTML}}
         <hr />
         <p>Originally from <a href="{{.Url}}">{{.Url}}</a></p>
@@ -52,32 +49,55 @@ func init() {
     template = T.Must(T.New("kindle").Parse(Tmpl))
 }
 
-func openFile(path string) *os.File {
-    file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
+type Kindlegen struct {
+    flow.Component
+    Input  <-chan J.Job
+    Output chan<- J.Job
+    Error  chan<- J.Job
+}
+
+func New() *Kindlegen {
+    return new(Kindlegen)
+}
+
+func (k *Kindlegen) error(job J.Job, format string, args ...interface{}) {
+    logger.Printf(format, args...)
+    job.Friendly = FriendlyMessage
+    k.Error <- job
+}
+
+func (k *Kindlegen) OnInput(job J.Job) {
+    if err := writeHTML(job); err != nil {
+        k.error(job, err.Error())
+        return
+    }
+
+    cmd := exec.Command(kindlegen, []string{job.HTMLFilename()}...)
+    cmd.Dir = job.Root()
+    out, err := cmd.CombinedOutput()
+    if !fileExists(job.MobiFilePath()) {
+        k.error(job, "Failed running kindlegen: %s {output=%s}", err, out)
+        return
+    }
+
+    job.Progress("Conversion complete...")
+    k.Output <- job
+}
+
+func fileExists(path string) bool {
+    stat, _ := os.Stat(path)
+    return stat != nil
+}
+
+func writeHTML(job J.Job) error {
+    file, err := os.OpenFile(job.HTMLFilePath(), os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {
-        logger.Panicf("Failed opening file: %s", err)
+        return fmt.Errorf("Failed opening file: %s", err)
     }
-    return file
-}
-
-func writeHTML(j *job.Job) {
-    file := openFile(j.HTMLFilePath())
     defer file.Close()
-    if err := template.Execute(file, j); err != nil {
-        logger.Panicf("Failed rendering HTML to file: %s", err)
-    }
-}
 
-func Convert(j *job.Job) {
-    go safely.Do(logger, j, FriendlyMessage, stat.KindlegenUnhandled, func() {
-        writeHTML(j)
-        cmd := exec.Command(kindlegen, []string{j.HTMLFilename()}...)
-        cmd.Dir = j.Root()
-        out, err := cmd.CombinedOutput()
-        if !util.FileExists(j.MobiFilePath()) {
-            logger.Panicf("Failed running kindlegen: %s {output=%s}", err, out)
-        }
-        j.Progress("Conversion complete...")
-        postmark.Mail(j)
-    })
+    if err = template.Execute(file, &job); err != nil {
+        return fmt.Errorf("Failed executing template: %s", err)
+    }
+    return nil
 }

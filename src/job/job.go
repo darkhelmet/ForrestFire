@@ -2,6 +2,7 @@ package job
 
 import (
     "blacklist"
+    "errors"
     "fmt"
     "github.com/darkhelmet/go-html-transform/h5"
     "github.com/nu7hatch/gouuid"
@@ -20,22 +21,26 @@ const (
 )
 
 type Job struct {
-    Email  string
-    Url    *url.URL
-    Key    *uuid.UUID
-    Doc    *h5.Node
-    Title  string
-    Author string
-    Domain string
+    Email    string
+    Url      *url.URL
+    Key      *uuid.UUID
+    Doc      *h5.Node
+    Title    string
+    Author   string
+    Domain   string
+    Friendly string
 }
 
 func New(email, uri string) *Job {
     u, _ := url.Parse(uri)
-    key, err := uuid.NewV4()
-    if err != nil {
-        panic(fmt.Errorf("Failed generating UUID: %s", err))
+    key, _ := uuid.NewV4()
+    return &Job{
+        Email:  email,
+        Url:    u,
+        Key:    key,
+        Doc:    nil,
+        Author: DefaultAuthor,
     }
-    return &Job{email, u, key, nil, "", DefaultAuthor, ""}
 }
 
 func (j *Job) filename(extension string) string {
@@ -51,12 +56,8 @@ func (j *Job) Hash() string {
     return hashie.Sha1([]byte(j.Url.String()), j.Key[:])
 }
 
-func (j *Job) KeyString() string {
-    return j.Key.String()
-}
-
 func (j *Job) Progress(message string) {
-    user.Notify(j.KeyString(), message)
+    user.Notify(j.Key.String(), message)
 }
 
 func (j *Job) Root() string {
@@ -83,27 +84,32 @@ func (j *Job) MobiFilePath() string {
     return fmt.Sprintf("%s/%s", j.Root(), j.MobiFilename())
 }
 
-func (j *Job) IsValid() (message string, ok bool) {
+func (j *Job) Validate() error {
     // URL failed to parse
     if j.Url == nil {
         blacklist.Blacklist(j.Url.String())
-        message = "Sorry, but this URL doesn't look like it'll work."
-        return
+        return errors.New("Sorry, but this URL doesn't look like it'll work.")
     }
 
     // URL is already blacklisted
     if blacklist.IsBlacklisted(j.Url.String()) {
-        message = "Sorry, but this URL has proven to not work, and has been blacklisted."
-        return
+        return errors.New("Sorry, but this URL has proven to not work, and has been blacklisted.")
     }
 
     // Email is blacklisted
     if blacklist.IsBlacklisted(j.Email) {
-        message = "Sorry, but this email has proven to not work. You might want to try carefully remaking your bookmarklet."
-        return
+        return errors.New("Sorry, but this email has proven to not work. You might want to try carefully remaking your bookmarklet.")
     }
 
-    return "", true
+    if j.Key == nil {
+        return errors.New("Submission failed, no key generated")
+    }
+
+    if err := os.MkdirAll(j.Root(), 0755); err != nil {
+        return errors.New("Submission failed, no working directory made")
+    }
+
+    return nil
 }
 
 func (j *Job) Now() time.Time {

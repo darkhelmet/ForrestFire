@@ -12,10 +12,8 @@ func key(thing string) string {
 }
 
 func IsBlacklisted(thing string) bool {
-    if _, err := cache.Get(key(thing)); err == nil {
-        return true
-    }
-    return false
+    _, err := cache.Get(key(thing))
+    return err == nil
 }
 
 func Blacklist(thing string) {
