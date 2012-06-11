@@ -93,6 +93,5 @@ func (e *Emailer) OnInput(job J.Job) {
     }
 
     job.Progress("All done! Grab your Kindle and hang tight!")
-
     e.Output <- job
 }
