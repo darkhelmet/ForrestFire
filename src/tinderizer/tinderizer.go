@@ -162,7 +162,8 @@ func main() {
         Register(submitRoute, "GET", submitHandler).
         Register(statusRoute, "GET", statusHandler).
         Register("/debug.json", "GET", expvar.ServeWeb).
-        Register("/debug/pprof/<:.*>", "*", pprof.ServeWeb)
+        Register("/debug/pprof/<:.*>", "*", pprof.ServeWeb).
+        Register("/<path:.*>", "GET", web.DirectoryHandler("static", nil))
 
     redirector := web.NewRouter().
         // These routes get matched in both places so they work everywhere.
