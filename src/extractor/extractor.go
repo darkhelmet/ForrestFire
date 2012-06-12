@@ -71,8 +71,8 @@ func (e *Extractor) Process(job J.Job) {
     job.Doc = rewriteAndDownloadImages(job.Root(), doc)
     job.Title = resp.Title
     job.Domain = resp.Domain
-    if resp.Author != "" {
-        job.Author = resp.Author
+    if resp.Author != nil {
+        job.Author = *resp.Author
         stat.Count(stat.ExtractorAuthor, 1)
     }
 
