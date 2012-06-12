@@ -3,7 +3,6 @@ package kindlegen
 import (
     "fmt"
     "github.com/darkhelmet/env"
-    "github.com/trustmaster/goflow"
     T "html/template"
     J "job"
     "log"
@@ -50,14 +49,17 @@ func init() {
 }
 
 type Kindlegen struct {
-    flow.Component
     Input  <-chan J.Job
     Output chan<- J.Job
     Error  chan<- J.Job
 }
 
-func New() *Kindlegen {
-    return new(Kindlegen)
+func New(input <-chan J.Job, output chan<- J.Job, error chan<- J.Job) *Kindlegen {
+    return &Kindlegen{
+        Input:  input,
+        Output: output,
+        Error:  error,
+    }
 }
 
 func (k *Kindlegen) error(job J.Job, format string, args ...interface{}) {
@@ -66,7 +68,13 @@ func (k *Kindlegen) error(job J.Job, format string, args ...interface{}) {
     k.Error <- job
 }
 
-func (k *Kindlegen) OnInput(job J.Job) {
+func (k *Kindlegen) Run() {
+    for job := range k.Input {
+        go k.Process(job)
+    }
+}
+
+func (k *Kindlegen) Process(job J.Job) {
     if err := writeHTML(job); err != nil {
         k.error(job, err.Error())
         return

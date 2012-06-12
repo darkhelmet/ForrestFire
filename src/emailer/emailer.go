@@ -5,7 +5,6 @@ import (
     "fmt"
     "github.com/darkhelmet/env"
     "github.com/darkhelmet/postmark"
-    "github.com/trustmaster/goflow"
     J "job"
     "log"
     "net/http"
@@ -32,14 +31,17 @@ var (
 )
 
 type Emailer struct {
-    flow.Component
     Input  <-chan J.Job
     Output chan<- J.Job
     Error  chan<- J.Job
 }
 
-func New() *Emailer {
-    return new(Emailer)
+func New(input <-chan J.Job, output chan<- J.Job, error chan<- J.Job) *Emailer {
+    return &Emailer{
+        Input:  input,
+        Output: output,
+        Error:  error,
+    }
 }
 
 func (e *Emailer) error(job J.Job, friendly, format string, args ...interface{}) {
@@ -48,7 +50,13 @@ func (e *Emailer) error(job J.Job, friendly, format string, args ...interface{})
     e.Error <- job
 }
 
-func (e *Emailer) OnInput(job J.Job) {
+func (e *Emailer) Run() {
+    for job := range e.Input {
+        go e.Process(job)
+    }
+}
+
+func (e *Emailer) Process(job J.Job) {
     if st, err := os.Stat(job.MobiFilePath()); err != nil {
         e.error(job, FriendlyMessage, "Something weird happened. Mobi is missing: %s", err)
         return

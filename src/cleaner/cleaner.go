@@ -1,21 +1,25 @@
 package cleaner
 
 import (
-    "github.com/trustmaster/goflow"
     J "job"
     "os"
 )
 
 type Cleaner struct {
-    flow.Component
     Input <-chan J.Job
 }
 
-func New() *Cleaner {
-    return new(Cleaner)
+func New(input <-chan J.Job) *Cleaner {
+    return &Cleaner{Input: input}
 }
 
-func (e *Cleaner) OnInput(job J.Job) {
+func (c *Cleaner) Run() {
+    for job := range c.Input {
+        go c.Process(job)
+    }
+}
+
+func (*Cleaner) Process(job J.Job) {
     if job.Friendly != "" {
         job.Progress(job.Friendly)
     }

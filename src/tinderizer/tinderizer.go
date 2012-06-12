@@ -14,7 +14,6 @@ import (
     "github.com/garyburd/twister/pprof"
     "github.com/garyburd/twister/server"
     "github.com/garyburd/twister/web"
-    "github.com/trustmaster/goflow"
     "html/template"
     "io"
     J "job"
@@ -34,42 +33,26 @@ var (
     canonicalHost = env.StringDefaultF("CANONICAL_HOST", func() string { return fmt.Sprintf("localhost:%d", port) })
     logger        = log.New(os.Stdout, "[server] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
     templates     = template.Must(template.ParseGlob("views/*.tmpl"))
-    newJobs       = make(chan J.Job, 1)
-    app           = NewApp()
+    newJobs       chan J.Job
 )
-
-type TinderizerApp struct {
-    flow.Graph
-}
 
 func init() {
     stat.Count(stat.RuntimeBoot, 1)
-    flow.RunNet(app)
+    newJobs = RunApp()
 }
 
-func NewApp() *TinderizerApp {
-    a := new(TinderizerApp)
-    a.InitGraphState()
-    a.Add(extractor.New(), "extractor")
-    a.Add(kindlegen.New(), "kindlegen")
-    a.Add(emailer.New(), "emailer")
-    a.Add(cleaner.New(), "cleaner")
+func RunApp() chan J.Job {
+    input := make(chan J.Job, 10)
+    conversion := make(chan J.Job, 10)
+    emailing := make(chan J.Job, 10)
+    cleaning := make(chan J.Job, 10)
 
-    cleaning := make(chan J.Job, 4)
+    go extractor.New(input, conversion, cleaning).Run()
+    go kindlegen.New(conversion, emailing, cleaning).Run()
+    go emailer.New(emailing, cleaning, cleaning).Run()
+    go cleaner.New(cleaning).Run()
 
-    a.Connect("extractor", "Output", "kindlegen", "Input", make(chan J.Job, 1))
-    a.Connect("extractor", "Error", "cleaner", "Input", cleaning)
-
-    a.Connect("kindlegen", "Output", "emailer", "Input", make(chan J.Job, 1))
-    a.Connect("kindlegen", "Error", "cleaner", "Input", cleaning)
-
-    a.Connect("emailer", "Output", "cleaner", "Input", cleaning)
-    a.Connect("emailer", "Error", "cleaner", "Input", cleaning)
-
-    a.MapInPort("In", "extractor", "Input")
-    a.SetInPort("In", newJobs)
-
-    return a
+    return input
 }
 
 func renderPage(w io.Writer, page, host string) error {

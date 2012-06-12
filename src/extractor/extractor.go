@@ -6,7 +6,6 @@ import (
     "github.com/darkhelmet/go-html-transform/h5"
     "github.com/darkhelmet/go-html-transform/html/transform"
     "github.com/darkhelmet/readability"
-    "github.com/trustmaster/goflow"
     "hashie"
     J "job"
     "log"
@@ -31,14 +30,17 @@ var (
 )
 
 type Extractor struct {
-    flow.Component
     Input  <-chan J.Job
     Output chan<- J.Job
     Error  chan<- J.Job
 }
 
-func New() *Extractor {
-    return new(Extractor)
+func New(input <-chan J.Job, output chan<- J.Job, error chan<- J.Job) *Extractor {
+    return &Extractor{
+        Input:  input,
+        Output: output,
+        Error:  error,
+    }
 }
 
 func (e *Extractor) error(job J.Job, format string, args ...interface{}) {
@@ -47,7 +49,13 @@ func (e *Extractor) error(job J.Job, format string, args ...interface{}) {
     e.Error <- job
 }
 
-func (e *Extractor) OnInput(job J.Job) {
+func (e *Extractor) Run() {
+    for job := range e.Input {
+        go e.Process(job)
+    }
+}
+
+func (e *Extractor) Process(job J.Job) {
     resp, err := rdb.Extract(job.Url.String())
     if err != nil {
         e.error(job, "readability failed: %s", err)
