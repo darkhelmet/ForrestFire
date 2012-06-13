@@ -144,9 +144,9 @@ func redirectHandler(req *web.Request) {
 
 func ShortLogger(lr *server.LogRecord) {
     if lr.Error != nil {
-        logger.Printf("%s %d %s %s %s\n", lr.Request.RemoteAddr, lr.Status, lr.Request.Method, lr.Request.URL, lr.Error)
+        logger.Printf("%d %s %s %s\n", lr.Status, lr.Request.Method, lr.Request.URL, lr.Error)
     } else {
-        logger.Printf("%s %d %s %s\n", lr.Request.RemoteAddr, lr.Status, lr.Request.Method, lr.Request.URL)
+        logger.Printf("%d %s %s\n", lr.Status, lr.Request.Method, lr.Request.URL)
     }
 }
 
