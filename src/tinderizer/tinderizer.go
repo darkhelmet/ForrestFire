@@ -144,9 +144,9 @@ func redirectHandler(req *web.Request) {
 
 func ShortLogger(lr *server.LogRecord) {
     if lr.Error != nil {
-        logger.Printf("%d %s %s %s\n", lr.Status, lr.Request.Method, lr.Request.URL, lr.Error)
+        logger.Printf("%s %d %s %s %s\n", lr.Request.RemoteAddr, lr.Status, lr.Request.Method, lr.Request.URL, lr.Error)
     } else {
-        logger.Printf("%d %s %s\n", lr.Status, lr.Request.Method, lr.Request.URL)
+        logger.Printf("%s %d %s %s\n", lr.Request.RemoteAddr, lr.Status, lr.Request.Method, lr.Request.URL)
     }
 }
 
@@ -156,14 +156,13 @@ func main() {
     router := web.NewRouter().
         Register("/", "GET", homeHandler).
         Register("/static/bookmarklet.js", "GET", handleBookmarklet).
-        Register("/static/<path:.*>", "GET", web.DirectoryHandler("static", nil)).
         Register("/<page:(faq|bugs|contact)>", "GET", pageHandler).
         Register("/<chunk:(firefox|safari|chrome|ie|ios|kindle-email)>", "GET", chunkHandler).
         Register(submitRoute, "GET", submitHandler).
         Register(statusRoute, "GET", statusHandler).
         Register("/debug.json", "GET", expvar.ServeWeb).
         Register("/debug/pprof/<:.*>", "*", pprof.ServeWeb).
-        Register("/<path:.*>", "GET", web.DirectoryHandler("static", nil))
+        Register("/<path:.*>", "GET", web.DirectoryHandler("public", nil))
 
     redirector := web.NewRouter().
         // These routes get matched in both places so they work everywhere.
