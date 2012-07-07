@@ -17,7 +17,7 @@ const (
     Tmpl            = `
 <html>
     <head>
-        <meta content="text/html, charset=utf-8" http-equiv="Content-Type" />
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
         <meta content="{{.Author}} ({{.Domain}})" name="author" />
         <title>{{.Title}}</title>
     </head>
@@ -25,9 +25,7 @@ const (
         <h1>{{.Title}}</h1>
         {{.HTML}}
         <hr />
-        <p>Originally from <a href="{{.Url}}">{{.Url}}</a></p>
-        <p>Sent with <a href="http://Tinderizer.com/">Tinderizer</a></p>
-        <p>Generated at {{.Now}}</p>
+        <p>Sent with <a href="http://Tinderizer.com/">Tinderizer</a> at {{.Now}} from <a href="{{.Url}}">{{.Url}}</a></p>
     </body>
 </html>
 `

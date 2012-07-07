@@ -112,6 +112,6 @@ func (j *Job) Validate() error {
     return nil
 }
 
-func (j *Job) Now() time.Time {
-    return time.Now()
+func (j *Job) Now() string {
+    return time.Now().Format(time.RFC822)
 }
