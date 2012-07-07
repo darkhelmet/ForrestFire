@@ -1,4 +1,9 @@
 ((url) ->
+  style = document.createElement('style')
+  style.innerHTML = {{.Style}}
+  head = document.getElementsByTagName('head')[0]
+  head.appendChild(style) if head?
+
   interval = (time, func) ->
     setInterval(func, time)
 
@@ -33,12 +38,6 @@
   notify = (message) ->
     div.innerHTML = message
     div.appendChild(document.createTextNode(' '))
-
-  div.style.minWidth = '300px'
-  div.style.width = 'auto'
-  div.style.height = '30px'
-  div.style.fontSize = '12px'
-  div.style.fontFamily = 'sans-serif'
 
   Tinderizer = () ->
     validHost = /tinderizer\.com/i
