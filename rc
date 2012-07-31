@@ -3,3 +3,7 @@ config=`heroku config -s`
 export `echo $config | tr ' ' '\n' | grep READABILITY_TOKEN`
 export `echo $config | tr ' ' '\n' | grep POSTMARK_TOKEN`
 export `echo $config | tr ' ' '\n' | grep FROM`
+
+function watch() {
+    puncher 'killall -USR1 tinderizer' src/bookmarklet/bookmarklet.coffee
+}
