@@ -183,6 +183,7 @@ func main() {
         Handler:  hostRouter,
         Logger:   server.LoggerFunc(ShortLogger),
     }
+    logger.Printf("Tinderizer is starting on 0.0.0.0:%d", port)
     err = server.Serve()
     if err != nil {
         logger.Fatalf("Failed to server: %s", err)
