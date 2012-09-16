@@ -23,7 +23,7 @@ $(document).ready(function() {
       setupDiv(); \
       var script = document.createElement('script'); \
       script.type = 'text/javascript'; \
-      script.src = 'http://" + host + "/static/bookmarklet.js?t=' + (new Date()).getTime(); \
+      script.src = '//" + host + "/static/bookmarklet.js?t=' + (new Date()).getTime(); \
       document.getElementsByTagName('head')[0].appendChild(script); \
     })();";
     $('#bookmarklet').attr('href', script);
