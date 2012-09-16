@@ -21,6 +21,7 @@ const (
 
 var (
     script   = make(chan []byte, 1)
+    protocol = env.StringDefault("PROTOCOL", "http")
     compress = env.StringDefault("BOOKMARKLET_PRECOMPILE", "") == "ugly"
     logger   = log.New(os.Stdout, "[bookmarklet] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
 )
@@ -62,7 +63,8 @@ func compileCoffeeScript(compress bool) []byte {
     }
 
     context := map[string]string{
-        "Style": string(compileLessToJson(compress)),
+        "Style":    string(compileLessToJson(compress)),
+        "Protocol": protocol,
     }
 
     var buffer bytes.Buffer

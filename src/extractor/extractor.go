@@ -55,8 +55,15 @@ func (e *Extractor) Run() {
     }
 }
 
+func extract(url, content string) (*readability.Response, error) {
+    if content == "" {
+        return rdb.Extract(url)
+    }
+    return rdb.ExtractWithContent(url, content)
+}
+
 func (e *Extractor) Process(job J.Job) {
-    resp, err := rdb.Extract(job.Url.String())
+    resp, err := extract(job.Url, job.Content)
     if err != nil {
         e.error(job, "readability failed: %s", err)
         return

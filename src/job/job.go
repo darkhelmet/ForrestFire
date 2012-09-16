@@ -21,25 +21,23 @@ const (
 )
 
 type Job struct {
-    Email    string
-    Url      *url.URL
-    Key      *uuid.UUID
-    Doc      *h5.Node
-    Title    string
-    Author   string
-    Domain   string
-    Friendly string
+    Url, Email, Title, Author, Domain, Friendly, Content string
+    Key                                                  *uuid.UUID
+    Doc                                                  *h5.Node
+    urlError                                             error
 }
 
-func New(email, uri string) *Job {
-    u, _ := url.Parse(uri)
+func New(email, uri, content string) *Job {
+    _, err := url.Parse(uri)
     key, _ := uuid.NewV4()
     return &Job{
-        Email:  email,
-        Url:    u,
-        Key:    key,
-        Doc:    nil,
-        Author: DefaultAuthor,
+        Content:  content,
+        Email:    email,
+        Url:      uri,
+        Key:      key,
+        Doc:      nil,
+        Author:   DefaultAuthor,
+        urlError: err,
     }
 }
 
@@ -53,7 +51,7 @@ func (j *Job) GoString() string {
 }
 
 func (j *Job) Hash() string {
-    return hashie.Sha1([]byte(j.Url.String()), j.Key[:])
+    return hashie.Sha1([]byte(j.Url), j.Key[:])
 }
 
 func (j *Job) Progress(message string) {
@@ -86,13 +84,13 @@ func (j *Job) MobiFilePath() string {
 
 func (j *Job) Validate() error {
     // URL failed to parse
-    if j.Url == nil {
-        blacklist.Blacklist(j.Url.String())
+    if j.urlError != nil {
+        blacklist.Blacklist(j.Url)
         return errors.New("Sorry, but this URL doesn't look like it'll work.")
     }
 
     // URL is already blacklisted
-    if blacklist.IsBlacklisted(j.Url.String()) {
+    if blacklist.IsBlacklisted(j.Url) {
         return errors.New("Sorry, but this URL has proven to not work, and has been blacklisted.")
     }
 

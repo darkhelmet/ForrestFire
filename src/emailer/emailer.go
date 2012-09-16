@@ -63,7 +63,7 @@ func (e *Emailer) Process(job J.Job) {
     } else {
         if st.Size() > MaxAttachmentSize {
             stat.Count(stat.PostmarkTooBig, 1)
-            blacklist.Blacklist(job.Url.String())
+            blacklist.Blacklist(job.Url)
             e.error(job, "Sorry, this article is too big to send!", "Attachment was too big (%d bytes)", st.Size())
             return
         }
