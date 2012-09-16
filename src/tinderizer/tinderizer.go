@@ -107,6 +107,7 @@ func submitHandler(req *web.Request) {
     if err != nil {
         logger.Printf("failed decoding submission: %s", err)
     }
+    logger.Printf("submission of %#v to %#v", submission.Url, submission.Email)
 
     w := req.Respond(web.StatusOK,
         web.HeaderContentType, "application/json; charset=utf-8",
