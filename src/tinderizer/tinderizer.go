@@ -132,6 +132,29 @@ func submitHandler(req *web.Request) {
     stat.Debug()
 }
 
+func oldSubmitHandler(req *web.Request) {
+    w := req.Respond(web.StatusOK,
+        web.HeaderContentType, "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin", "*")
+    encoder := json.NewEncoder(w)
+    job := J.New(req.Param.Get("email"), req.Param.Get("url"), "")
+    if err := job.Validate(); err == nil {
+        stat.Count(stat.SubmitSuccess, 1)
+        job.Progress("Working...")
+        newJobs <- *job
+        encoder.Encode(JSON{
+            "message": "Submitted! Hang tight...",
+            "id":      job.Key.String(),
+        })
+    } else {
+        stat.Count(stat.SubmitBlacklist, 1)
+        encoder.Encode(JSON{
+            "message": err.Error(),
+        })
+    }
+    stat.Debug()
+}
+
 func statusHandler(req *web.Request) {
     w := req.Respond(web.StatusOK,
         web.HeaderContentType, "application/json; charset=utf-8",
@@ -173,7 +196,7 @@ func main() {
         Register("/static/bookmarklet.js", "GET", handleBookmarklet).
         Register("/<page:(faq|bugs|contact)>", "GET", pageHandler).
         Register("/<chunk:(firefox|safari|chrome|ie|ios|kindle-email)>", "GET", chunkHandler).
-        Register(submitRoute, "POST", submitHandler).
+        Register(submitRoute, "POST", submitHandler, "GET", oldSubmitHandler).
         Register(statusRoute, "GET", statusHandler).
         Register("/debug.json", "GET", expvar.ServeWeb).
         Register("/debug/pprof/<:.*>", "*", pprof.ServeWeb).
@@ -181,7 +204,7 @@ func main() {
 
     redirector := web.NewRouter().
         // These routes get matched in both places so they work everywhere.
-        Register(submitRoute, "POST", submitHandler).
+        Register(submitRoute, "POST", submitHandler, "GET", oldSubmitHandler).
         Register(statusRoute, "GET", statusHandler).
         Register("/<splat:>", "GET", redirectHandler)
 
