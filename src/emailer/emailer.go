@@ -17,8 +17,6 @@ type Any interface{}
 const (
     MaxAttachmentSize = 10485760
     Subject           = "convert"
-    Endpoint          = "https://api.postmarkapp.com/email"
-    AuthHeader        = "X-Postmark-Server-Token"
     FriendlyMessage   = "Sorry, email sending failed."
 )
 
@@ -26,7 +24,7 @@ var (
     from   = env.String("FROM")
     token  = env.String("POSTMARK_TOKEN")
     pm     = postmark.New(token)
-    logger = log.New(os.Stdout, "[postmark] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
+    logger = log.New(os.Stdout, "[emailer] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
     client http.Client
 )
 
@@ -77,13 +75,13 @@ func (e *Emailer) Process(job J.Job) {
     }
 
     if err := m.Attach(job.MobiFilePath()); err != nil {
-        e.error(job, FriendlyMessage, "Failed attaching file: %s", err)
+        e.error(job, FriendlyMessage, "failed attaching file: %s", err)
         return
     }
 
     resp, err := pm.Send(m)
     if err != nil {
-        e.error(job, FriendlyMessage, "Failed sending emailer: %s", err)
+        e.error(job, FriendlyMessage, "failed sending email: %s", err)
         return
     }
 

@@ -82,7 +82,7 @@ func (k *Kindlegen) Process(job J.Job) {
     cmd.Dir = job.Root()
     out, err := cmd.CombinedOutput()
     if !fileExists(job.MobiFilePath()) {
-        k.error(job, "Failed running kindlegen: %s {output=%s}", err, out)
+        k.error(job, "failed running kindlegen: %s {output=%s}", err, out)
         return
     }
 
@@ -98,12 +98,12 @@ func fileExists(path string) bool {
 func writeHTML(job J.Job) error {
     file, err := os.OpenFile(job.HTMLFilePath(), os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {
-        return fmt.Errorf("Failed opening file: %s", err)
+        return fmt.Errorf("failed opening file: %s", err)
     }
     defer file.Close()
 
     if err = template.Execute(file, &job); err != nil {
-        return fmt.Errorf("Failed executing template: %s", err)
+        return fmt.Errorf("failed executing template: %s", err)
     }
     return nil
 }
