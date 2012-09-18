@@ -17,6 +17,8 @@ import (
 
 const (
     FriendlyMessage = "Sorry, extraction failed."
+    RetryTimes      = 3
+    RetryPause      = 3 * time.Second
 )
 
 type JSON map[string]interface{}
@@ -62,8 +64,25 @@ func extract(url, content string) (*readability.Response, error) {
     return rdb.ExtractWithContent(url, content)
 }
 
+func extractRetry(url, content string) (resp *readability.Response, err error) {
+    for i := 0; i < RetryTimes; i++ {
+        resp, err = extract(url, content)
+        switch err {
+        case readability.ErrTransient:
+            // Hmm, let's try that again. Sleep and let the loop repeat
+            logger.Printf("readability transient error, retrying")
+            time.Sleep(RetryPause)
+        default:
+            // Either it worked, or we don't want to retry
+            return
+        }
+    }
+    // If we get here, just return what we had last
+    return
+}
+
 func (e *Extractor) Process(job J.Job) {
-    resp, err := extract(job.Url, job.Content)
+    resp, err := extractRetry(job.Url, job.Content)
     if err != nil {
         e.error(job, "readability failed: %s", err)
         return
