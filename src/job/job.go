@@ -5,7 +5,6 @@ import (
     "errors"
     "fmt"
     "github.com/darkhelmet/go-html-transform/h5"
-    "github.com/nu7hatch/gouuid"
     "hashie"
     "html/template"
     "net/url"
@@ -13,6 +12,7 @@ import (
     "strings"
     "time"
     "user"
+    "vendor/github.com/nu7hatch/gouuid"
 )
 
 const (

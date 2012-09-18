@@ -2,12 +2,12 @@ package cache
 
 import (
     "fmt"
-    "github.com/bmizerany/mc"
     "github.com/darkhelmet/env"
     "io"
     "log"
     "os"
     "syscall"
+    "vendor/github.com/bmizerany/mc"
 )
 
 type mcCache struct {
