@@ -35,7 +35,7 @@ class Tinderizer
         'Run this on the raw page, not a Readability page!': /^https?:\/\/www.readability.com\/articles\//i
 
     constructor: (@div, @url) ->
-        @host = @div.getAttribute('data-host')
+        @host = String(@div.getAttribute('data-host')).split(':')[0]
         @to = @div.getAttribute('data-email')
         @body = document.getElementsByTagName('body')[0]
         @redirect = false
