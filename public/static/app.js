@@ -11,7 +11,7 @@ $(document).ready(function() {
         } \
         div = document.createElement('div'); \
         div.id = id; div.style.width = 'auto'; div.style.height = '30px'; \
-        div.style.fontSize = '14px'; div.setAttribute('data-host', '" + host + "'); \
+        div.style.fontSize = '14px'; \
         div.setAttribute('data-email', '" + encodeURIComponent(this.value) + "'); \
         div.style.position = 'fixed'; div.style.top = '10px'; div.style.left = '10px'; \
         div.style.background = 'white'; div.style.color = 'black'; div.style.borderColor = 'black'; div.style.borderStyle = 'solid'; \

@@ -20,12 +20,29 @@ const (
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
         <meta content="{{.Author}} ({{.Domain}})" name="author" />
         <title>{{.Title}}</title>
+        <style type="text/css">
+            h1, h2, h3, h4, h5 {
+                margin-bottom: 0.5em;
+            }
+
+            p, ol, ul {
+                margin-bottom: 1em;
+            }
+
+            .meta {
+                font-weight: bold;
+                font-style: italic;
+            }
+        </style>
     </head>
     <body>
         <h1>{{.Title}}</h1>
+        <hr />
+        <p class="meta">{{if .Author}}By {{.Author}} on {{else}}On {{end}}<a href="{{.Url}}">{{.Domain}}</a></p>
         {{.HTML}}
         <hr />
-        <p>Sent with <a href="http://Tinderizer.com/">Tinderizer</a> at {{.Now}} from <a href="{{.Url}}">{{.Url}}</a></p>
+        <p>Sent with <a href="https://Tinderizer.com/">Tinderizer</a> at {{.Now}} from <a href="{{.Url}}">{{.Url}}</a></p>
+        <p>Please donate at <a href="https://Tinderizer.com/">https://Tinderizer.com/</a> if you find this application useful.</p>
     </body>
 </html>
 `
