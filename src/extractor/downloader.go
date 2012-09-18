@@ -32,13 +32,13 @@ func (d *downloader) downloadToFile(url, path string) error {
     defer resp.Body.Close()
     file, err := os.OpenFile(d.output(path), os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {
-        return fmt.Errorf("downloader: File open failed: %s", err)
+        return fmt.Errorf("downloader: file open failed: %s", err)
     }
     defer file.Close()
 
     written, err := io.Copy(file, resp.Body)
     if err != nil {
-        return fmt.Errorf("downloader: Failed copying to file; %s", err)
+        return fmt.Errorf("downloader: failed copying to file; %s", err)
     }
 
     if resp.ContentLength > 0 && written != resp.ContentLength {

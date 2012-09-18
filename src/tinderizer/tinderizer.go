@@ -75,7 +75,7 @@ func pageHandler(req *web.Request) {
     w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=utf-8")
     tmpl := fmt.Sprintf("%s.tmpl", req.URLParam["page"])
     if err := renderPage(w, tmpl, canonicalHost); err != nil {
-        logger.Printf("Failed rendering page: %s", err)
+        logger.Printf("failed rendering page: %s", err)
     }
 }
 
@@ -83,14 +83,14 @@ func chunkHandler(req *web.Request) {
     w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=utf-8")
     tmpl := fmt.Sprintf("%s.tmpl", req.URLParam["chunk"])
     if err := templates.ExecuteTemplate(w, tmpl, nil); err != nil {
-        logger.Printf("Failed rendering chunk: %s", err)
+        logger.Printf("failed rendering chunk: %s", err)
     }
 }
 
 func homeHandler(req *web.Request) {
     w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=utf-8")
     if err := renderPage(w, "index.tmpl", canonicalHost); err != nil {
-        logger.Printf("Failed rendering index: %s", err)
+        logger.Printf("failed rendering index: %s", err)
     }
 }
 
@@ -129,6 +129,7 @@ func submitHandler(req *web.Request) {
             "message": err.Error(),
         })
     }
+    stat.Count("submitHandler", 1)
     stat.Debug()
 }
 
@@ -152,6 +153,7 @@ func oldSubmitHandler(req *web.Request) {
             "message": err.Error(),
         })
     }
+    stat.Count("oldSubmitHandler", 1)
     stat.Debug()
 }
 
@@ -213,7 +215,7 @@ func main() {
 
     listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", port))
     if err != nil {
-        logger.Fatalf("Failed to listen: %s", err)
+        logger.Fatalf("failed to listen: %s", err)
     }
     defer listener.Close()
     server := &server.Server{
@@ -224,6 +226,6 @@ func main() {
     logger.Printf("Tinderizer is starting on 0.0.0.0:%d", port)
     err = server.Serve()
     if err != nil {
-        logger.Fatalf("Failed to server: %s", err)
+        logger.Fatalf("failed to serve: %s", err)
     }
 }

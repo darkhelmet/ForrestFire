@@ -1,8 +1,6 @@
 package user
 
-import (
-    "cache"
-)
+import "cache"
 
 const TTL = 2 * 60 // 2 minutes
 

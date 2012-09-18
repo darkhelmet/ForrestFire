@@ -58,10 +58,7 @@ func Javascript() []byte {
 }
 
 func compileCoffeeScript(compress bool) []byte {
-    tmpl, err := template.ParseFiles(CoffeeScriptPath)
-    if err != nil {
-        panic(fmt.Errorf("bookmarklet: Failed building template: %s", err))
-    }
+    tmpl := template.Must(template.ParseFiles(CoffeeScriptPath))
 
     context := map[string]string{
         "Style":    string(compileLessToJson(compress)),
