@@ -67,7 +67,9 @@ func renderPage(w io.Writer, page, host string) error {
 }
 
 func handleBookmarklet(req *web.Request) {
-    w := req.Respond(web.StatusOK, web.HeaderContentType, "application/javascript; charset=utf-8")
+    w := req.Respond(web.StatusOK,
+        web.HeaderContentType, "application/javascript; charset=utf-8",
+        "Access-Control-Allow-Origin", "*")
     w.Write(bookmarklet.Javascript())
 }
 
