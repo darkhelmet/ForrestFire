@@ -26,9 +26,7 @@ import (
     "stat"
 )
 
-const (
-    HeaderAccessControlAllowOrigin = "Access-Control-Allow-Origin"
-)
+const HeaderAccessControlAllowOrigin = "Access-Control-Allow-Origin"
 
 var (
     doneRegex     = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
