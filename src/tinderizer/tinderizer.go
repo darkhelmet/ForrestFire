@@ -10,22 +10,25 @@ import (
     "extractor"
     "fmt"
     "github.com/darkhelmet/env"
+    "github.com/darkhelmet/webutil"
+    "github.com/garyburd/twister/adapter"
     "github.com/garyburd/twister/expvar"
     "github.com/garyburd/twister/pprof"
-    "github.com/garyburd/twister/server"
     "github.com/garyburd/twister/web"
     "html/template"
     "io"
     J "job"
     "kindlegen"
     "log"
-    "net"
+    "net/http"
     "os"
     "regexp"
     "stat"
 )
 
-type JSON map[string]interface{}
+const (
+    HeaderAccessControlAllowOrigin = "Access-Control-Allow-Origin"
+)
 
 var (
     doneRegex     = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
@@ -35,6 +38,8 @@ var (
     templates     = template.Must(template.ParseGlob("views/*.tmpl"))
     newJobs       chan J.Job
 )
+
+type JSON map[string]interface{}
 
 func init() {
     stat.Count(stat.RuntimeBoot, 1)
@@ -67,9 +72,7 @@ func renderPage(w io.Writer, page, host string) error {
 }
 
 func handleBookmarklet(req *web.Request) {
-    w := req.Respond(web.StatusOK,
-        web.HeaderContentType, "application/javascript; charset=utf-8",
-        "Access-Control-Allow-Origin", "*")
+    w := req.Respond(web.StatusOK, web.HeaderContentType, "application/javascript; charset=utf-8")
     w.Write(bookmarklet.Javascript())
 }
 
@@ -111,9 +114,7 @@ func submitHandler(req *web.Request) {
     }
     logger.Printf("submission of %#v to %#v", submission.Url, submission.Email)
 
-    w := req.Respond(web.StatusOK,
-        web.HeaderContentType, "application/json; charset=utf-8",
-        "Access-Control-Allow-Origin", "*")
+    w := req.Respond(web.StatusOK, web.HeaderContentType, "application/json; charset=utf-8")
 
     encoder := json.NewEncoder(w)
     job := J.New(submission.Email, submission.Url, submission.Content)
@@ -136,9 +137,7 @@ func submitHandler(req *web.Request) {
 }
 
 func oldSubmitHandler(req *web.Request) {
-    w := req.Respond(web.StatusOK,
-        web.HeaderContentType, "application/json; charset=utf-8",
-        "Access-Control-Allow-Origin", "*")
+    w := req.Respond(web.StatusOK, web.HeaderContentType, "application/json; charset=utf-8")
     encoder := json.NewEncoder(w)
     job := J.New(req.Param.Get("email"), req.Param.Get("url"), "")
     if err := job.Validate(); err == nil {
@@ -160,9 +159,7 @@ func oldSubmitHandler(req *web.Request) {
 }
 
 func statusHandler(req *web.Request) {
-    w := req.Respond(web.StatusOK,
-        web.HeaderContentType, "application/json; charset=utf-8",
-        "Access-Control-Allow-Origin", "*")
+    w := req.Respond(web.StatusOK, web.HeaderContentType, "application/json; charset=utf-8")
     message := "No job with that ID found."
     done := true
     if v, err := cache.Get(req.URLParam["id"]); err == nil {
@@ -182,14 +179,6 @@ func redirectHandler(req *web.Request) {
     url.Host = canonicalHost
     url.Scheme = "http"
     req.Respond(web.StatusMovedPermanently, web.HeaderLocation, url.String())
-}
-
-func ShortLogger(lr *server.LogRecord) {
-    if lr.Error != nil {
-        logger.Printf("%d %s %s %s\n", lr.Status, lr.Request.Method, lr.Request.URL, lr.Error)
-    } else {
-        logger.Printf("%d %s %s\n", lr.Status, lr.Request.Method, lr.Request.URL)
-    }
 }
 
 func main() {
@@ -215,18 +204,16 @@ func main() {
     hostRouter := web.NewHostRouter(redirector).
         Register(canonicalHost, router)
 
-    listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", port))
-    if err != nil {
-        logger.Fatalf("failed to listen: %s", err)
-    }
-    defer listener.Close()
-    server := &server.Server{
-        Listener: listener,
-        Handler:  hostRouter,
-        Logger:   server.LoggerFunc(ShortLogger),
-    }
+    var handler http.Handler = adapter.HTTPHandler{hostRouter}
+    handler = webutil.AlwaysHeaderHandler{handler, http.Header{HeaderAccessControlAllowOrigin: {"*"}}}
+    handler = webutil.GzipHandler{handler}
+    handler = webutil.LoggerHandler{handler, logger}
+    handler = webutil.EnsureRequestBodyClosedHandler{handler}
+
+    http.Handle("/", handler)
+
     logger.Printf("Tinderizer is starting on 0.0.0.0:%d", port)
-    err = server.Serve()
+    err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil)
     if err != nil {
         logger.Fatalf("failed to serve: %s", err)
     }
