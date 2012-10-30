@@ -70,7 +70,7 @@ func extractRetry(url, content string) (resp *readability.Response, err error) {
         switch err {
         case readability.ErrTransient:
             // Hmm, let's try that again. Sleep and let the loop repeat
-            logger.Printf("readability transient error, retrying")
+            logger.Println("readability transient error, retrying")
             time.Sleep(RetryPause)
         default:
             // Either it worked, or we don't want to retry

@@ -21,7 +21,7 @@ else
         xhr.send(data)
 
 class Tinderizer
-    paywalls: /arstechnica|nytimes|theatlantic|guardian|wsj|thetimes/
+    sendHTML: /arstechnica|nytimes|theatlantic|guardian|wsj|thetimes/
 
     css: {{.Style}}
 
@@ -97,7 +97,7 @@ class Tinderizer
                         window.location = 'https://tinderizer.com/' if @redirect
 
     isPaywall: ->
-        @paywalls.test(document.location.host)
+        @sendHTML.test(document.location.host)
 
     run: ->
         if @okay()
