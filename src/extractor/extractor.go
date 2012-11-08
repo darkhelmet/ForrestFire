@@ -95,7 +95,9 @@ func (e *Extractor) Process(job J.Job) {
     }
 
     job.Doc = rewriteAndDownloadImages(job.Root(), doc)
-    job.Title = resp.Title
+    if resp.Title != "" {
+        job.Title = resp.Title
+    }
     job.Domain = resp.Domain
     if resp.Author != nil {
         job.Author = *resp.Author

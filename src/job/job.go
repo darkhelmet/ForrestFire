@@ -32,6 +32,7 @@ func New(email, uri, content string) *Job {
     key, _ := uuid.NewV4()
     return &Job{
         Content:  content,
+        Title:    uri,
         Email:    email,
         Url:      uri,
         Key:      key,
