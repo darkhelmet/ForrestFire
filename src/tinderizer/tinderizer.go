@@ -104,8 +104,13 @@ type EmailHeader struct {
     Name, Value string
 }
 
+type EmailToFull struct {
+    Email, Name string
+}
+
 type InboundEmail struct {
     From, To, CC, ReplyTo, Subject string
+    ToFull                         []EmailToFull
     MessageId, Date, MailboxHash   string
     TextBody, HtmlBody             string
     Tag                            string
@@ -113,7 +118,7 @@ type InboundEmail struct {
 }
 
 func extractParts(e *InboundEmail) (email string, url string, err error) {
-    parts := strings.Split(e.To, "@")
+    parts := strings.Split(e.ToFull[0].Email, "@")
     if len(parts) == 0 {
         return "", "", errors.New("failed splitting email on '@'")
     }
