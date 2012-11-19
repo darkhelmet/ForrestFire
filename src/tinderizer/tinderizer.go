@@ -6,7 +6,9 @@ import (
     "cache"
     "cleaner"
     "emailer"
+    "encoding/hex"
     "encoding/json"
+    "errors"
     "extractor"
     "fmt"
     "github.com/darkhelmet/env"
@@ -24,6 +26,7 @@ import (
     "os"
     "regexp"
     "stat"
+    "strings"
 )
 
 const HeaderAccessControlAllowOrigin = "Access-Control-Allow-Origin"
@@ -97,6 +100,61 @@ func homeHandler(req *web.Request) {
     }
 }
 
+type EmailHeader struct {
+    Name, Value string
+}
+
+type InboundEmail struct {
+    From, To, CC, ReplyTo, Subject string
+    MessageId, Date, MailboxHash   string
+    TextBody, HtmlBody             string
+    Tag                            string
+    Headers                        []EmailHeader
+}
+
+func extractParts(e *InboundEmail) (email string, url string, err error) {
+    parts := strings.Split(e.To, "@")
+    if len(parts) == 0 {
+        return "", "", errors.New("failed splitting email on '@'")
+    }
+    emailBytes, err := hex.DecodeString(parts[0])
+    if err != nil {
+        return "", "", fmt.Errorf("failed decoding email from hex: %s", err)
+    }
+    email = string(emailBytes)
+    buffer := bytes.NewBufferString(e.TextBody)
+    url, err = buffer.ReadString('\n')
+    if err != nil {
+        return "", "", fmt.Errorf("failed reading line from email body: %s", err)
+    }
+    url = strings.TrimSpace(url)
+    return
+}
+
+func inboundHandler(req *web.Request) {
+    decoder := json.NewDecoder(req.Body)
+    var inbound InboundEmail
+    err := decoder.Decode(&inbound)
+    if err != nil {
+        logger.Printf("failed decoding inbound email: %s", err)
+    } else {
+        email, url, err := extractParts(&inbound)
+        if err != nil {
+            logger.Printf("failed extracting needed parts from email: %s", err)
+        } else {
+            job := J.New(email, url, "")
+            if err := job.Validate(); err == nil {
+                stat.Count(stat.EmailSuccess, 1)
+                newJobs <- *job
+            } else {
+                stat.Count(stat.EmailBlacklist, 1)
+            }
+        }
+    }
+    w := req.Respond(web.StatusOK, web.HeaderContentType, "text/plain; charset=utf-8")
+    io.WriteString(w, "ok")
+}
+
 type Submission struct {
     Url     string `json:"url"`
     Email   string `json:"email"`
@@ -113,7 +171,6 @@ func submitHandler(req *web.Request) {
     logger.Printf("submission of %#v to %#v", submission.Url, submission.Email)
 
     w := req.Respond(web.StatusOK, web.HeaderContentType, "application/json; charset=utf-8")
-
     encoder := json.NewEncoder(w)
     job := J.New(submission.Email, submission.Url, submission.Content)
     if err := job.Validate(); err == nil {
@@ -184,6 +241,7 @@ func main() {
     statusRoute := "/ajax/status/<id:[^.]+>.json"
     router := web.NewRouter().
         Register("/", "GET", homeHandler).
+        Register("/inbound", "POST", inboundHandler).
         Register("/static/bookmarklet.js", "GET", handleBookmarklet).
         Register("/<page:(faq|bugs|contact)>", "GET", pageHandler).
         Register("/<chunk:(firefox|safari|chrome|ie|ios|kindle-email)>", "GET", chunkHandler).

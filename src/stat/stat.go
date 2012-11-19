@@ -10,7 +10,9 @@ import (
 const (
     Prefix             = "[Tinderizer]"
     SubmitSuccess      = "submit.success"
+    EmailSuccess       = "email.success"
     SubmitBlacklist    = "submit.blacklist"
+    EmailBlacklist     = "email.blacklist"
     HttpRedirect       = "http.redirect"
     RuntimeGoroutines  = "runtime.goroutines"
     RuntimeMemory      = "runtime.memory"
