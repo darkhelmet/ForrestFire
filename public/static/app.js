@@ -1,3 +1,17 @@
+String.prototype.hexEncode = function() {
+  var r = '';
+  var i = 0;
+  var h;
+  while (i < this.length) {
+    h = this.charCodeAt(i++).toString(16);
+    while (h.length < 2) {
+      h = h;
+    }
+    r += h;
+  }
+  return r;
+};
+
 $(document).ready(function() {
   var host = $('meta[name=host]').attr('content');
   $('#email').change(function() {
@@ -27,6 +41,8 @@ $(document).ready(function() {
       document.getElementsByTagName('head')[0].appendChild(script); \
     })();";
     $('#bookmarklet').attr('href', script);
+  }).change(function() {
+    $('#inbound-email').text($(this).val().hexEncode() + "@tinderizer.com");
   });
 
   $(document).bind('reveal.facebox', function() {
