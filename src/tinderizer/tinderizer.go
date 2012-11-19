@@ -147,6 +147,7 @@ func inboundHandler(req *web.Request) {
         if err != nil {
             logger.Printf("failed extracting needed parts from email: %s", err)
         } else {
+            logger.Printf("email submission of %#v to %#v", url, email)
             job := J.New(email, url, "")
             if err := job.Validate(); err == nil {
                 stat.Count(stat.EmailSuccess, 1)
