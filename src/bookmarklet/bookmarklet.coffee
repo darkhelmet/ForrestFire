@@ -21,7 +21,7 @@ else
         xhr.send(data)
 
 class Tinderizer
-    sendHTML: /arstechnica|nytimes|theatlantic|guardian|wsj|thetimes/
+    paywallHosts: /arstechnica|nytimes|theatlantic|guardian|wsj|thetimes/
 
     css: {{.Style}}
 
@@ -96,8 +96,8 @@ class Tinderizer
                         @body.removeChild(@div)
                         window.location = 'https://tinderizer.com/' if @redirect
 
-    isPaywall: ->
-        @sendHTML.test(document.location.host)
+    sendHTML: ->
+        @paywallHosts.test(document.location.host)
 
     run: ->
         if @okay()
@@ -106,7 +106,7 @@ class Tinderizer
             data =
                 url: @url
                 email: @to
-            if @isPaywall()
+            if @sendHTML()
                 data.content = document.documentElement.outerHTML
             Request(@submitEndpoint, 'POST', JSON.stringify(data), @onSubmit)
 
