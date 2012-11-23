@@ -82,7 +82,7 @@ func (e *Emailer) Process(job J.Job) {
     }
 
     resp, err := pm.Send(m)
-    if err != nil {
+    if resp == nil {
         e.error(job, FriendlyMessage, "failed sending email: %s", err)
         return
     }
@@ -92,6 +92,10 @@ func (e *Emailer) Process(job J.Job) {
         // All is well
         key := time.Now().Format("2006:01")
         counter.Inc(key, 1)
+        stat.Count(stat.PostmarkSuccess, 1)
+    case 422:
+        e.error(job, FriendlyMessage, "failed sending email: %s: %s", err, resp.Message)
+        return
     case 300, 406:
         blacklist.Blacklist(job.Email)
         stat.Count(stat.PostmarkBlacklist, 1)

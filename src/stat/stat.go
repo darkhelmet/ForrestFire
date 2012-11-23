@@ -18,6 +18,7 @@ const (
     RuntimeMemory      = "runtime.memory"
     RuntimeBoot        = "runtime.boot"
     KindlegenUnhandled = "kindlegen.unhandled"
+    PostmarkSuccess    = "postmark.success"
     PostmarkTooBig     = "postmark.too-big"
     PostmarkInactive   = "postmark.inactive"
     PostmarkBlacklist  = "postmark.blacklist"
