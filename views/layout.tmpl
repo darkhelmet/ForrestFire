@@ -32,7 +32,7 @@
         <a href='/'>Tinderizer</a>
       </h1>
       <div id='tagline'>Sending articles to your Kindle device, one click at a time!</div>
-      {{template "donate.tmpl"}}
+      <p>Sent <strong>{{.count}}</strong> articles this month!</p>
     </div>
     {{.yield}}
     {{template "footer.tmpl"}}

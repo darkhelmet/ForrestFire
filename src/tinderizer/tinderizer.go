@@ -5,6 +5,7 @@ import (
     "bytes"
     "cache"
     "cleaner"
+    "counter"
     "emailer"
     "encoding/hex"
     "encoding/json"
@@ -27,6 +28,7 @@ import (
     "regexp"
     "stat"
     "strings"
+    "time"
 )
 
 const HeaderAccessControlAllowOrigin = "Access-Control-Allow-Origin"
@@ -62,6 +64,12 @@ func RunApp() chan J.Job {
 }
 
 func renderPage(w io.Writer, page, host string) error {
+    key := time.Now().Format("2006:01")
+    count, err := counter.Get(key)
+    if err != nil {
+        log.Printf("failed getting count: %s", err)
+    }
+
     var buffer bytes.Buffer
     if err := templates.ExecuteTemplate(&buffer, page, nil); err != nil {
         return err
@@ -69,6 +77,7 @@ func renderPage(w io.Writer, page, host string) error {
     return templates.ExecuteTemplate(w, "layout.tmpl", JSON{
         "host":  host,
         "yield": template.HTML(buffer.String()),
+        "count": count,
     })
 }
 

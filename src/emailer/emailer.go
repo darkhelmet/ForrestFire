@@ -2,6 +2,7 @@ package emailer
 
 import (
     "blacklist"
+    "counter"
     "fmt"
     "github.com/darkhelmet/env"
     "github.com/darkhelmet/postmark"
@@ -10,6 +11,7 @@ import (
     "net/http"
     "os"
     "stat"
+    "time"
 )
 
 type Any interface{}
@@ -88,6 +90,8 @@ func (e *Emailer) Process(job J.Job) {
     switch resp.ErrorCode {
     case 0:
         // All is well
+        key := time.Now().Format("2006:01")
+        counter.Inc(key, 1)
     case 300, 406:
         blacklist.Blacklist(job.Email)
         stat.Count(stat.PostmarkBlacklist, 1)
