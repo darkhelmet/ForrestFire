@@ -68,6 +68,7 @@ func renderPage(w io.Writer, page, host string) error {
     count, err := counter.Get(key)
     if err != nil {
         log.Printf("failed getting count: %s", err)
+        count, _ = counter.Get(key)
     }
 
     var buffer bytes.Buffer
