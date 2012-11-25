@@ -137,7 +137,7 @@ func extractParts(e *InboundEmail) (email string, url string, err error) {
         return "", "", fmt.Errorf("failed decoding email from hex: %s", err)
     }
     email = string(emailBytes)
-    buffer := bytes.NewBufferString(e.TextBody)
+    buffer := bytes.NewBufferString(strings.TrimSpace(e.TextBody))
     url, err = buffer.ReadString('\n')
     if err != nil {
         return "", "", fmt.Errorf("failed reading line from email body: %s", err)
