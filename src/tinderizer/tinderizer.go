@@ -67,7 +67,7 @@ func renderPage(w io.Writer, page, host string) error {
     key := time.Now().Format("2006:01")
     count, err := counter.Get(key)
     if err != nil {
-        log.Printf("failed getting count: %s", err)
+        logger.Printf("failed getting count: %s", err)
         count, _ = counter.Get(key)
     }
 

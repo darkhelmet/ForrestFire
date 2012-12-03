@@ -10,6 +10,7 @@ import (
     "log"
     "net/http"
     "os"
+    "retry"
     "stat"
     "time"
 )
@@ -91,7 +92,9 @@ func (e *Emailer) Process(job J.Job) {
     case 0:
         // All is well
         key := time.Now().Format("2006:01")
-        counter.Inc(key, 1)
+        retry.Times(3, func() error {
+            return counter.Inc(key, 1)
+        })
         stat.Count(stat.PostmarkSuccess, 1)
     case 422:
         e.error(job, FriendlyMessage, "failed sending email: %s: %s", err, resp.Message)

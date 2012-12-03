@@ -27,6 +27,6 @@ func Get(key string) (int, error) {
     return client.Get(key).Int()
 }
 
-func Inc(key string, n int) {
-    client.Incrby(key, n)
+func Inc(key string, n int) error {
+    return client.Incrby(key, n).Err
 }
