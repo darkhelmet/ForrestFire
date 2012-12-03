@@ -142,6 +142,7 @@ func extractParts(e *InboundEmail) (email string, url string, err error) {
     if len(url) == 0 && err != nil {
         return "", "", fmt.Errorf("failed reading line from email body: %s", err)
     }
+    err = nil
     url = strings.TrimSpace(url)
     return
 }
