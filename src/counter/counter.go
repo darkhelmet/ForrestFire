@@ -28,5 +28,9 @@ func Get(key string) (int, error) {
 }
 
 func Inc(key string, n int) error {
-    return client.Incrby(key, n).Err
+    reply := client.Incrby(key, n)
+    if reply.Type == redis.ReplyError {
+        return reply.Err
+    }
+    return nil
 }
