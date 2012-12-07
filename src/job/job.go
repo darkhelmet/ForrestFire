@@ -95,11 +95,6 @@ func (j *Job) Validate() error {
         return errors.New("Sorry, but this URL has proven to not work, and has been blacklisted.")
     }
 
-    // Email is blacklisted
-    if blacklist.IsBlacklisted(j.Email) {
-        return errors.New("Sorry, but this email has proven to not work. You might want to try carefully remaking your bookmarklet.")
-    }
-
     if j.Key == nil {
         return errors.New("Submission failed, no key generated")
     }
