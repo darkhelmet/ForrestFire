@@ -13,6 +13,7 @@ import (
     "extractor"
     "fmt"
     "github.com/darkhelmet/env"
+    "github.com/darkhelmet/postmark"
     "github.com/darkhelmet/webutil"
     "github.com/garyburd/twister/adapter"
     "github.com/garyburd/twister/expvar"
@@ -23,6 +24,7 @@ import (
     J "job"
     "kindlegen"
     "log"
+    "looper"
     "net/http"
     "os"
     "regexp"
@@ -172,6 +174,34 @@ func inboundHandler(req *web.Request) {
     io.WriteString(w, "ok")
 }
 
+func bounceHandler(req *web.Request) {
+    decoder := json.NewDecoder(req.Body)
+    var bounce postmark.Bounce
+    err := decoder.Decode(&bounce)
+    if err != nil {
+        logger.Printf("failed decoding bounce: %s", err)
+        return
+    }
+
+    if looper.AlreadyResent(bounce.MessageID, bounce.Email) {
+        logger.Printf("skipping resend of message ID %s", bounce.MessageID)
+    } else {
+        err = emailer.Pm.Reactivate(bounce)
+        if err != nil {
+            logger.Printf("failed reactivating bounce: %s", err)
+            return
+        }
+        uri := looper.MarkResent(bounce.MessageID, bounce.Email)
+        job := J.New(bounce.Email, uri, "")
+        if err := job.Validate(); err != nil {
+            logger.Printf("bounced email failed to validate as a job: %s", err)
+        } else {
+            logger.Printf("resending %#v to %#v after bounce", uri, bounce.Email)
+            newJobs <- *job
+        }
+    }
+}
+
 type Submission struct {
     Url     string `json:"url"`
     Email   string `json:"email"`
@@ -259,6 +289,7 @@ func main() {
     router := web.NewRouter().
         Register("/", "GET", homeHandler).
         Register("/inbound", "POST", inboundHandler).
+        Register("/bounce", "POST", bounceHandler).
         Register("/static/bookmarklet.js", "GET", handleBookmarklet).
         Register("/<page:(faq|bugs|contact)>", "GET", pageHandler).
         Register("/<chunk:(firefox|safari|chrome|ie|ios|kindle-email)>", "GET", chunkHandler).

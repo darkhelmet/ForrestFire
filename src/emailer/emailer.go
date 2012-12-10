@@ -8,6 +8,7 @@ import (
     "github.com/darkhelmet/postmark"
     J "job"
     "log"
+    "looper"
     "net/http"
     "os"
     "retry"
@@ -26,7 +27,7 @@ const (
 var (
     from   = env.String("FROM")
     token  = env.String("POSTMARK_TOKEN")
-    pm     = postmark.New(token)
+    Pm     = postmark.New(token)
     logger = log.New(os.Stdout, "[emailer] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
     client http.Client
 )
@@ -82,7 +83,7 @@ func (e *Emailer) Process(job J.Job) {
         return
     }
 
-    resp, err := pm.Send(m)
+    resp, err := Pm.Send(m)
     if resp == nil {
         e.error(job, FriendlyMessage, "failed sending email: %s", err)
         return
@@ -111,5 +112,6 @@ func (e *Emailer) Process(job J.Job) {
     }
 
     job.Progress("All done! Grab your Kindle and hang tight!")
+    looper.MapUrl(resp.MessageID, job.Url)
     e.Output <- job
 }
