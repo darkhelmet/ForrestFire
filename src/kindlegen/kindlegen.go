@@ -10,6 +10,7 @@ import (
     "os/exec"
     "path/filepath"
     "runtime"
+    "stat"
 )
 
 const (
@@ -78,6 +79,7 @@ func New(input <-chan J.Job, output chan<- J.Job, error chan<- J.Job) *Kindlegen
 }
 
 func (k *Kindlegen) error(job J.Job, format string, args ...interface{}) {
+    stat.Count(stat.KindlegenError, 1)
     logger.Printf(format, args...)
     job.Friendly = FriendlyMessage
     k.Error <- job

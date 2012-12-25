@@ -33,7 +33,10 @@ import (
     "time"
 )
 
-const HeaderAccessControlAllowOrigin = "Access-Control-Allow-Origin"
+const (
+    HeaderAccessControlAllowOrigin = "Access-Control-Allow-Origin"
+    QueueSize                      = 10
+)
 
 var (
     doneRegex     = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
@@ -52,10 +55,10 @@ func init() {
 }
 
 func RunApp() chan J.Job {
-    input := make(chan J.Job, 10)
-    conversion := make(chan J.Job, 10)
-    emailing := make(chan J.Job, 10)
-    cleaning := make(chan J.Job, 10)
+    input := make(chan J.Job, QueueSize)
+    conversion := make(chan J.Job, QueueSize)
+    emailing := make(chan J.Job, QueueSize)
+    cleaning := make(chan J.Job, QueueSize)
 
     go extractor.New(input, conversion, cleaning).Run()
     go kindlegen.New(conversion, emailing, cleaning).Run()
@@ -163,10 +166,8 @@ func inboundHandler(req *web.Request) {
             logger.Printf("email submission of %#v to %#v", url, email)
             job := J.New(email, url, "")
             if err := job.Validate(); err == nil {
-                stat.Count(stat.EmailSuccess, 1)
                 newJobs <- *job
-            } else {
-                stat.Count(stat.EmailBlacklist, 1)
+                stat.Count(stat.SubmitBounce, 1)
             }
         }
     }
@@ -196,10 +197,13 @@ func bounceHandler(req *web.Request) {
         if err := job.Validate(); err != nil {
             logger.Printf("bounced email failed to validate as a job: %s", err)
         } else {
-            logger.Printf("resending %#v to %#v after bounce", uri, bounce.Email)
             newJobs <- *job
+            logger.Printf("resending %#v to %#v after bounce", uri, bounce.Email)
+            stat.Count(stat.PostmarkBounce, 1)
         }
     }
+    w := req.Respond(web.StatusOK, web.HeaderContentType, "text/plain; charset=utf-8")
+    io.WriteString(w, "ok")
 }
 
 type Submission struct {
@@ -229,7 +233,7 @@ func submitHandler(req *web.Request) {
             "id":      job.Key.String(),
         })
     } else {
-        stat.Count(stat.SubmitBlacklist, 1)
+        stat.Count(stat.SubmitError, 1)
         encoder.Encode(JSON{
             "message": err.Error(),
         })
@@ -251,12 +255,12 @@ func oldSubmitHandler(req *web.Request) {
             "id":      job.Key.String(),
         })
     } else {
-        stat.Count(stat.SubmitBlacklist, 1)
+        stat.Count(stat.SubmitError, 1)
         encoder.Encode(JSON{
             "message": err.Error(),
         })
     }
-    stat.Count("oldSubmitHandler", 1)
+    stat.Count(stat.SubmitOld, 1)
     stat.Debug()
 }
 

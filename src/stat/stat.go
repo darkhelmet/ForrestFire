@@ -1,73 +1,68 @@
 package stat
 
 import (
-    "fmt"
     "github.com/darkhelmet/env"
-    "github.com/darkhelmet/stathatgo"
+    "github.com/darkhelmet/go-librato"
     "runtime"
 )
 
 const (
-    Prefix             = "[Tinderizer]"
-    SubmitSuccess      = "submit.success"
-    EmailSuccess       = "email.success"
-    SubmitBlacklist    = "submit.blacklist"
-    EmailBlacklist     = "email.blacklist"
-    HttpRedirect       = "http.redirect"
-    RuntimeGoroutines  = "runtime.goroutines"
-    RuntimeMemory      = "runtime.memory"
-    RuntimeBoot        = "runtime.boot"
-    KindlegenUnhandled = "kindlegen.unhandled"
-    PostmarkSuccess    = "postmark.success"
-    PostmarkTooBig     = "postmark.too-big"
-    PostmarkInactive   = "postmark.inactive"
-    PostmarkBlacklist  = "postmark.blacklist"
-    PostmarkUnhandled  = "postmark.unhandled"
-    ExtractorAuthor    = "extractor.author"
-    ExtractorImage     = "extractor.image"
-    ExtractorUnhandled = "extractor.unhandled"
-    OneMillion         = 1000000
+    SubmitOld     = "submit.old"
+    SubmitSuccess = "submit.success"
+    SubmitError   = "submit.error"
+    SubmitBounce  = "submit.bounce"
+
+    HttpRedirect = "http.redirect"
+
+    RuntimeGoroutines = "runtime.goroutines"
+    RuntimeMemory     = "runtime.memory"
+    RuntimeBoot       = "runtime.boot"
+
+    PostmarkBounce       = "postmark.bounce"
+    PostmarkSuccess      = "postmark.success"
+    PostmarkTooBig       = "postmark.toobig"
+    PostmarkError        = "postmark.error"
+    PostmarkInvalidEmail = "postmark.invalidemail"
+    PostmarkDeactivated  = "postmark.deactivated"
+
+    ExtractorAuthor = "extractor.author"
+    ExtractorImage  = "extractor.image"
+    ExtractorError  = "extractor.error"
+
+    KindlegenError = "kindlegen.error"
+
+    OneMillion = 1000000
 )
 
 var (
-    key   = env.StringDefault("STAT_HAT_KEY", "")
-    Count func(string, int)
-    Value func(string, float64)
+    Count func(string, int64)
+    Gauge func(string, int64)
 )
 
 func init() {
-    if key == "" {
-        Count = func(name string, value int) {}
-        Value = func(name string, value float64) {}
+    user := env.StringDefault("LIBRATO_USER", "")
+    token := env.StringDefault("LIBRATO_TOKEN", "")
+    source := env.StringDefault("LIBRATO_SOURCE", "")
+
+    if user == "" || token == "" || source == "" {
+        Count = func(name string, value int64) {}
+        Gauge = func(name string, value int64) {}
     } else {
-        Count = count
-        Value = value
+        m := librato.NewSimpleMetrics(user, token, source)
+
+        Count = func(name string, value int64) {
+            m.GetCounter(name) <- value
+        }
+
+        Gauge = func(name string, value int64) {
+            m.GetGauge(name) <- value
+        }
     }
 }
 
-func count(name string, value int) {
-    stathat.PostEZCount(fmt.Sprintf("%s %s", Prefix, name), key, value)
-}
-
-func value(name string, value float64) {
-    stathat.PostEZValue(fmt.Sprintf("%s %s", Prefix, name), key, value)
-}
-
 func Debug() {
-    Value(RuntimeMemory, allocInBaseTen())
-    Value(RuntimeGoroutines, float64(runtime.NumGoroutine()))
-}
-
-// Read amount of memory, but converted to base ten
-// so when stathat does math it's actually accurate.
-// They show 3.91M or something to mean 3.91 million,
-// but doing this math, it will end up being 3.whatever,
-// megabytes
-func allocInBaseTen() float64 {
     var ms runtime.MemStats
     runtime.ReadMemStats(&ms)
-    // Yes, this could overflow the float,
-    // but this app is fairly low on usage, so it's fine.
-    alloc := float64(ms.Alloc)
-    return alloc / 1024 / 1024 * OneMillion
+    Gauge(RuntimeMemory, int64(ms.Alloc))
+    Gauge(RuntimeGoroutines, int64(runtime.NumGoroutine()))
 }

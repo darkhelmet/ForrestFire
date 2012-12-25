@@ -99,12 +99,15 @@ func (e *Emailer) Process(job J.Job) {
         stat.Count(stat.PostmarkSuccess, 1)
     case 422:
         e.error(job, FriendlyMessage, "failed sending email: %s: %s", err, resp.Message)
+        stat.Count(stat.PostmarkError, 1)
         return
     case 300:
         e.error(job, "Your email appears invalid. Please try carefully remaking the bookmarklet.", "emailer: Email inactive or invalid")
+        stat.Count(stat.PostmarkInvalidEmail, 1)
         return
     case 406:
         e.error(job, "Your email appears to have bounced. Amazon likes to bounce emails sometimes, and my provider 'deactivates' the email. For now, try changing your Personal Documents Email. I'm trying to find a proper solution for this :(", "emailer: Email inactive or invalid")
+        stat.Count(stat.PostmarkDeactivated, 1)
         return
     default:
         e.error(job, FriendlyMessage, "Something bizarre happened with Postmark: %s", resp.Message)

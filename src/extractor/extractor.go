@@ -46,6 +46,7 @@ func New(input <-chan J.Job, output chan<- J.Job, error chan<- J.Job) *Extractor
 }
 
 func (e *Extractor) error(job J.Job, format string, args ...interface{}) {
+    stat.Count(stat.ExtractorError, 1)
     logger.Printf(format, args...)
     job.Friendly = FriendlyMessage
     e.Error <- job
