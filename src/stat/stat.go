@@ -57,7 +57,6 @@ func init() {
             logger.Printf("gauge: %s: %d", name, value)
         }
     } else {
-
         m := librato.NewSimpleMetrics(user, token, source)
 
         Count = func(name string, value int64) {
