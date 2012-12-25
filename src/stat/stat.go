@@ -3,6 +3,8 @@ package stat
 import (
     "github.com/darkhelmet/env"
     "github.com/darkhelmet/go-librato"
+    "log"
+    "os"
     "runtime"
 )
 
@@ -44,18 +46,27 @@ func init() {
     user := env.StringDefault("LIBRATO_USER", "")
     token := env.StringDefault("LIBRATO_TOKEN", "")
     source := env.StringDefault("LIBRATO_SOURCE", "")
+    logger := log.New(os.Stdout, "[stat] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
 
     if user == "" || token == "" || source == "" {
-        Count = func(name string, value int64) {}
-        Gauge = func(name string, value int64) {}
+        Count = func(name string, value int64) {
+            logger.Printf("count: %d", value)
+        }
+
+        Gauge = func(name string, value int64) {
+            logger.Printf("gauge: %d", value)
+        }
     } else {
+
         m := librato.NewSimpleMetrics(user, token, source)
 
         Count = func(name string, value int64) {
+            logger.Printf("count: %d", value)
             m.GetCounter(name) <- value
         }
 
         Gauge = func(name string, value int64) {
+            logger.Printf("gauge: %d", value)
             m.GetGauge(name) <- value
         }
     }
