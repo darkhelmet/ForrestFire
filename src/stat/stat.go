@@ -50,23 +50,23 @@ func init() {
 
     if user == "" || token == "" || source == "" {
         Count = func(name string, value int64) {
-            logger.Printf("count: %d", value)
+            logger.Printf("count: %s: %d", name, value)
         }
 
         Gauge = func(name string, value int64) {
-            logger.Printf("gauge: %d", value)
+            logger.Printf("gauge: %s: %d", name, value)
         }
     } else {
 
         m := librato.NewSimpleMetrics(user, token, source)
 
         Count = func(name string, value int64) {
-            logger.Printf("count: %d", value)
+            logger.Printf("count: %s: %d", name, value)
             m.GetCounter(name) <- value
         }
 
         Gauge = func(name string, value int64) {
-            logger.Printf("gauge: %d", value)
+            logger.Printf("gauge: %s: %d", name, value)
             m.GetGauge(name) <- value
         }
     }
