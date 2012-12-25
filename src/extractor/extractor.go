@@ -120,8 +120,10 @@ func rewriteAndDownloadImages(root string, doc *h5.Node) *h5.Node {
             defer wg.Done()
             if err := imageDownloader.downloadToFile(uri, altered); err != nil {
                 logger.Printf("downloading image failed: %s", err)
+                stat.Count(stat.ExtractorImageError, 1)
+            } else {
+                stat.Count(stat.ExtractorImage, 1)
             }
-            stat.Count(stat.ExtractorImage, 1)
         }()
         return altered
     })

@@ -25,9 +25,10 @@ const (
     PostmarkInvalidEmail = "postmark.invalidemail"
     PostmarkDeactivated  = "postmark.deactivated"
 
-    ExtractorAuthor = "extractor.author"
-    ExtractorImage  = "extractor.image"
-    ExtractorError  = "extractor.error"
+    ExtractorAuthor     = "extractor.author"
+    ExtractorImage      = "extractor.image"
+    ExtractorError      = "extractor.error"
+    ExtractorImageError = "extractor.imageerror"
 
     KindlegenError = "kindlegen.error"
 
