@@ -238,7 +238,6 @@ func submitHandler(req *web.Request) {
             "message": err.Error(),
         })
     }
-    stat.Count("submitHandler", 1)
     stat.Debug()
 }
 
