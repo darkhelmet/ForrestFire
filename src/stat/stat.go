@@ -61,7 +61,8 @@ func init() {
 
         Count = func(name string, value int64) {
             logger.Printf("count: %s: %d", name, value)
-            m.GetCounter(name) <- value
+            // m.GetCounter(name) <- value
+            m.GetGauge(name) <- value
         }
 
         Gauge = func(name string, value int64) {
