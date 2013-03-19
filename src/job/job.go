@@ -25,20 +25,22 @@ type Job struct {
     Key                                                  *uuid.UUID
     Doc                                                  *h5.Node
     urlError                                             error
+    StartedAt                                            time.Time
 }
 
 func New(email, uri, content string) *Job {
     _, err := url.Parse(uri)
     key, _ := uuid.NewV4()
     return &Job{
-        Content:  content,
-        Title:    uri,
-        Email:    email,
-        Url:      uri,
-        Key:      key,
-        Doc:      nil,
-        Author:   DefaultAuthor,
-        urlError: err,
+        Content:   content,
+        Title:     uri,
+        Email:     email,
+        Url:       uri,
+        Key:       key,
+        Doc:       nil,
+        Author:    DefaultAuthor,
+        urlError:  err,
+        StartedAt: time.Now(),
     }
 }
 
@@ -107,5 +109,5 @@ func (j *Job) Validate() error {
 }
 
 func (j *Job) Now() string {
-    return time.Now().Format(time.RFC822)
+    return j.StartedAt.Format(time.RFC822)
 }
