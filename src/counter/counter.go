@@ -2,7 +2,7 @@ package counter
 
 import (
     "github.com/darkhelmet/env"
-    "github.com/fzzbt/radix/redis"
+    "github.com/fzzy/radix/redis"
     "net/url"
 )
 
