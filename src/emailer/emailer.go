@@ -123,7 +123,7 @@ func (e *Emailer) Process(job J.Job) {
 func recordDurationStat(job J.Job) {
     finishedAt := time.Now()
     duration := finishedAt.Sub(job.StartedAt)
-    milliseconds := duration.Seconds() / 1000
+    milliseconds := duration.Seconds() * 1000
     logger.Printf("job %s took %s", job, duration)
     stat.Gauge(stat.JobDuration, milliseconds)
 }
