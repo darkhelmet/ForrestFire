@@ -1,16 +1,17 @@
 package extractor
 
 import (
+    "boots"
+    "code.google.com/p/go.net/html"
     "fmt"
     "github.com/darkhelmet/env"
-    "github.com/darkhelmet/go-html-transform/h5"
-    "github.com/darkhelmet/go-html-transform/html/transform"
     "github.com/darkhelmet/readability"
     "hashie"
     J "job"
     "log"
     "os"
     "stat"
+    "strings"
     "sync"
     "time"
 )
@@ -89,13 +90,13 @@ func (e *Extractor) Process(job J.Job) {
         return
     }
 
-    doc, err := transform.NewDoc(resp.Content)
+    doc, err := rewriteAndDownloadImages(job.Root(), resp.Content)
     if err != nil {
         e.error(job, "HTML parsing failed: %s", err)
         return
     }
 
-    job.Doc = rewriteAndDownloadImages(job.Root(), doc)
+    job.Doc = doc
     if resp.Title != "" {
         job.Title = resp.Title
     }
@@ -109,25 +110,29 @@ func (e *Extractor) Process(job J.Job) {
     e.Output <- job
 }
 
-func rewriteAndDownloadImages(root string, doc *h5.Node) *h5.Node {
+func rewriteAndDownloadImages(root string, content string) (*html.Node, error) {
     var wg sync.WaitGroup
     imageDownloader := newDownloader(root, timeout, time.Now().Add(deadline))
-    t := transform.NewTransform(doc)
-    fix := transform.TransformAttrib("src", func(uri string) string {
-        altered := fmt.Sprintf("%x.jpg", hashie.Sha1([]byte(uri)))
-        wg.Add(1)
-        go func() {
-            defer wg.Done()
-            if err := imageDownloader.downloadToFile(uri, altered); err != nil {
-                logger.Printf("downloading image failed: %s", err)
-                stat.Count(stat.ExtractorImageError, 1)
-            } else {
-                stat.Count(stat.ExtractorImage, 1)
+    doc, err := boots.Walk(strings.NewReader(content), "img", func(node *html.Node) {
+        for index, attr := range node.Attr {
+            if attr.Key == "src" {
+                uri := attr.Val
+                altered := fmt.Sprintf("%x.jpg", hashie.Sha1([]byte(uri)))
+                wg.Add(1)
+                go func() {
+                    defer wg.Done()
+                    if err := imageDownloader.downloadToFile(uri, altered); err != nil {
+                        logger.Printf("downloading image failed: %s", err)
+                        stat.Count(stat.ExtractorImageError, 1)
+                    } else {
+                        stat.Count(stat.ExtractorImage, 1)
+                    }
+                }()
+                node.Attr[index].Val = altered
+                break
             }
-        }()
-        return altered
+        }
     })
-    t.Apply(fix, "img")
     wg.Wait()
-    return t.Doc()
+    return doc, err
 }

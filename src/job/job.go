@@ -2,9 +2,10 @@ package job
 
 import (
     "blacklist"
+    "bytes"
+    "code.google.com/p/go.net/html"
     "errors"
     "fmt"
-    "github.com/darkhelmet/go-html-transform/h5"
     "hashie"
     "html/template"
     "net/url"
@@ -23,7 +24,7 @@ const (
 type Job struct {
     Url, Email, Title, Author, Domain, Friendly, Content string
     Key                                                  *uuid.UUID
-    Doc                                                  *h5.Node
+    Doc                                                  *html.Node
     urlError                                             error
     StartedAt                                            time.Time
 }
@@ -66,7 +67,9 @@ func (j *Job) Root() string {
 }
 
 func (j *Job) HTML() template.HTML {
-    return template.HTML(j.Doc.String())
+    var buffer bytes.Buffer
+    html.Render(&buffer, j.Doc)
+    return template.HTML(buffer.String())
 }
 
 func (j *Job) HTMLFilename() string {
