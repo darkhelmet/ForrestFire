@@ -3,6 +3,10 @@ export FROM=`hk get FROM`
 export READABILITY_TOKEN=`hk get READABILITY_TOKEN`
 export POSTMARK_TOKEN=`hk get POSTMARK_TOKEN`
 
-function watch() {
+watch() {
     puncher 'killall -USR1 tinderizer' src/bookmarklet/bookmarklet.coffee
+}
+
+tinderizer() {
+    PORT=3000 CANONICAL_HOST=tinderizer.dev:3000 ./bin/tinderizer
 }

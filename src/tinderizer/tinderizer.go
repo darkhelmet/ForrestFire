@@ -164,10 +164,9 @@ func inboundHandler(req *web.Request) {
             logger.Printf("failed extracting needed parts from email: %s", err)
         } else {
             logger.Printf("email submission of %#v to %#v", url, email)
-            job := J.New(email, url, "")
-            if err := job.Validate(); err == nil {
+            if job, err := J.New(email, url, ""); err == nil {
                 newJobs <- *job
-                stat.Count(stat.SubmitBounce, 1)
+                stat.Count(stat.SubmitEmail, 1)
             }
         }
     }
@@ -193,8 +192,7 @@ func bounceHandler(req *web.Request) {
             return
         }
         uri := looper.MarkResent(bounce.MessageID, bounce.Email)
-        job := J.New(bounce.Email, uri, "")
-        if err := job.Validate(); err != nil {
+        if job, err := J.New(bounce.Email, uri, ""); err != nil {
             logger.Printf("bounced email failed to validate as a job: %s", err)
         } else {
             newJobs <- *job
@@ -223,44 +221,37 @@ func submitHandler(req *web.Request) {
 
     w := req.Respond(web.StatusOK, web.HeaderContentType, "application/json; charset=utf-8")
     encoder := json.NewEncoder(w)
-    job := J.New(submission.Email, submission.Url, submission.Content)
-    if err := job.Validate(); err == nil {
-        stat.Count(stat.SubmitSuccess, 1)
-        job.Progress("Working...")
-        newJobs <- *job
-        encoder.Encode(JSON{
-            "message": "Submitted! Hang tight...",
-            "id":      job.Key.String(),
-        })
-    } else {
-        stat.Count(stat.SubmitError, 1)
-        encoder.Encode(JSON{
-            "message": err.Error(),
-        })
-    }
-    stat.Debug()
+    submit(encoder, submission.Email, submission.Url, submission.Content)
 }
 
 func oldSubmitHandler(req *web.Request) {
     w := req.Respond(web.StatusOK, web.HeaderContentType, "application/json; charset=utf-8")
     encoder := json.NewEncoder(w)
-    job := J.New(req.Param.Get("email"), req.Param.Get("url"), "")
-    if err := job.Validate(); err == nil {
-        stat.Count(stat.SubmitSuccess, 1)
-        job.Progress("Working...")
-        newJobs <- *job
-        encoder.Encode(JSON{
-            "message": "Submitted! Hang tight...",
-            "id":      job.Key.String(),
-        })
-    } else {
-        stat.Count(stat.SubmitError, 1)
-        encoder.Encode(JSON{
-            "message": err.Error(),
-        })
-    }
+
+    submit(encoder, req.Param.Get("email"), req.Param.Get("url"), "")
     stat.Count(stat.SubmitOld, 1)
+}
+
+func submitError(encoder *json.Encoder, err error) {
+    stat.Count(stat.SubmitError, 1)
+    encoder.Encode(JSON{"message": err.Error()})
+}
+
+func submit(encoder *json.Encoder, email, url, content string) {
     stat.Debug()
+    job, err := J.New(email, url, content)
+    if err != nil {
+        submitError(encoder, err)
+        return
+    }
+
+    job.Progress("Working...")
+    newJobs <- *job
+    encoder.Encode(JSON{
+        "message": "Submitted! Hang tight...",
+        "id":      job.Key.String(),
+    })
+    stat.Count(stat.SubmitSuccess, 1)
 }
 
 func statusHandler(req *web.Request) {

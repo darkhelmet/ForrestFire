@@ -10,11 +10,13 @@ import (
 )
 
 const (
-    Prefix        = "[Tinderizer]"
+    Prefix = "[Tinderizer]"
+
     SubmitOld     = "submit.old"
     SubmitSuccess = "submit.success"
     SubmitError   = "submit.error"
     SubmitBounce  = "submit.bounce"
+    SubmitEmail   = "submit.email"
 
     HttpRedirect = "http.redirect"
 

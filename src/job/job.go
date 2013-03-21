@@ -16,23 +16,56 @@ import (
     "vendor/github.com/nu7hatch/gouuid"
 )
 
-const (
-    DefaultAuthor = "Tinderizer"
-    Tmp           = "tmp"
+const DefaultAuthor = "Tinderizer"
+
+var (
+    Tmp                 = "tmp"
+    BadUrlError         = errors.New("Sorry, but this URL doesn't look like it'll work.")
+    BlacklistedUrlError = errors.New("Sorry, but this URL has proven to not work, and has been blacklisted.")
+    NoKeyError          = errors.New("No key generated")
+    NoDirectoryError    = errors.New("No working directory made")
+    ParamsToClean       = []string{"utm_source", "utm_medium"}
 )
 
 type Job struct {
     Url, Email, Title, Author, Domain, Friendly, Content string
     Key                                                  *uuid.UUID
     Doc                                                  *html.Node
-    urlError                                             error
     StartedAt                                            time.Time
 }
 
-func New(email, uri, content string) *Job {
-    _, err := url.Parse(uri)
-    key, _ := uuid.NewV4()
-    return &Job{
+func New(email, uri, content string) (*Job, error) {
+    u, err := url.Parse(uri)
+    if err != nil {
+        blacklist.Blacklist(uri)
+        return nil, BadUrlError
+    }
+
+    switch u.Scheme {
+    case "http", "https":
+        // Fine
+    default:
+        blacklist.Blacklist(uri)
+        return nil, BadUrlError
+    }
+
+    query := u.Query()
+    for _, param := range ParamsToClean {
+        query.Del(param)
+    }
+    u.RawQuery = query.Encode()
+    uri = u.String()
+
+    if blacklist.IsBlacklisted(uri) {
+        return nil, BlacklistedUrlError
+    }
+
+    key, err := uuid.NewV4()
+    if err != nil {
+        return nil, NoKeyError
+    }
+
+    j := &Job{
         Content:   content,
         Title:     uri,
         Email:     email,
@@ -40,9 +73,15 @@ func New(email, uri, content string) *Job {
         Key:       key,
         Doc:       nil,
         Author:    DefaultAuthor,
-        urlError:  err,
         StartedAt: time.Now(),
     }
+
+    err = os.MkdirAll(j.Root(), 0755)
+    if err != nil {
+        return nil, NoDirectoryError
+    }
+
+    return j, nil
 }
 
 func (j *Job) filename(extension string) string {
@@ -86,29 +125,6 @@ func (j *Job) HTMLFilePath() string {
 
 func (j *Job) MobiFilePath() string {
     return fmt.Sprintf("%s/%s", j.Root(), j.MobiFilename())
-}
-
-func (j *Job) Validate() error {
-    // URL failed to parse
-    if j.urlError != nil {
-        blacklist.Blacklist(j.Url)
-        return errors.New("Sorry, but this URL doesn't look like it'll work.")
-    }
-
-    // URL is already blacklisted
-    if blacklist.IsBlacklisted(j.Url) {
-        return errors.New("Sorry, but this URL has proven to not work, and has been blacklisted.")
-    }
-
-    if j.Key == nil {
-        return errors.New("Submission failed, no key generated")
-    }
-
-    if err := os.MkdirAll(j.Root(), 0755); err != nil {
-        return errors.New("Submission failed, no working directory made")
-    }
-
-    return nil
 }
 
 func (j *Job) Now() string {
