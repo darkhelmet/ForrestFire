@@ -24,7 +24,7 @@ var (
     BlacklistedUrlError = errors.New("Sorry, but this URL has proven to not work, and has been blacklisted.")
     NoKeyError          = errors.New("No key generated")
     NoDirectoryError    = errors.New("No working directory made")
-    ParamsToClean       = []string{"utm_source", "utm_medium"}
+    ParamsToClean       = []string{"utm_source", "utm_medium", "utm_campaign"}
 )
 
 type Job struct {
