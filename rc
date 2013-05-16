@@ -1,4 +1,9 @@
 safe_gopath_export $PWD
+
+heroku_get() {
+    heroku config | grep $1 | awk '{ print $2 }'
+}
+
 export FROM=`hk get FROM`
 export READABILITY_TOKEN=`hk get READABILITY_TOKEN`
 export POSTMARK_TOKEN=`hk get POSTMARK_TOKEN`
