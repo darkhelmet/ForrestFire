@@ -4,9 +4,9 @@ heroku_get() {
     heroku config | grep $1 | awk '{ print $2 }'
 }
 
-export FROM=`hk get FROM`
-export READABILITY_TOKEN=`hk get READABILITY_TOKEN`
-export POSTMARK_TOKEN=`hk get POSTMARK_TOKEN`
+export FROM=$(heroku_get FROM)
+export READABILITY_TOKEN=$(heroku_get READABILITY_TOKEN)
+export POSTMARK_TOKEN=$(heroku_get POSTMARK_TOKEN)
 
 watch() {
     puncher 'killall -USR1 tinderizer' src/bookmarklet/bookmarklet.coffee

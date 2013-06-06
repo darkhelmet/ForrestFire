@@ -22,7 +22,8 @@ const (
 var (
     script   = make(chan []byte, 1)
     protocol = env.StringDefault("PROTOCOL", "http")
-    host     = env.StringDefault("CANONICAL_HOST", "localhost:8080")
+    port     = env.IntDefault("PORT", 8080)
+    host     = env.StringDefaultF("CANONICAL_HOST", func() string { return fmt.Sprintf("tinderizer.dev:%d", port) })
     compress = env.StringDefault("BOOKMARKLET_PRECOMPILE", "") == "ugly"
     logger   = log.New(os.Stdout, "[bookmarklet] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
 )

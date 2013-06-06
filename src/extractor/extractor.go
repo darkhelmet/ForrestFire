@@ -28,8 +28,8 @@ var (
     timeout  = 5 * time.Second
     deadline = 10 * time.Second
     token    = env.String("READABILITY_TOKEN")
-    rdb      = readability.New(token)
     logger   = log.New(os.Stdout, "[extractor] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
+    rdb      = readability.New(token, logger)
 )
 
 type Extractor struct {
@@ -86,7 +86,7 @@ func extractRetry(url, content string) (resp *readability.Response, err error) {
 func (e *Extractor) Process(job J.Job) {
     resp, err := extractRetry(job.Url, job.Content)
     if err != nil {
-        e.error(job, "readability failed: %s", err)
+        e.error(job, "%s", err)
         return
     }
 

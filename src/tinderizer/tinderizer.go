@@ -41,7 +41,7 @@ const (
 var (
     doneRegex     = regexp.MustCompile("(?i:done|failed|limited|invalid|error|sorry)")
     port          = env.IntDefault("PORT", 8080)
-    canonicalHost = env.StringDefaultF("CANONICAL_HOST", func() string { return fmt.Sprintf("localhost:%d", port) })
+    canonicalHost = env.StringDefaultF("CANONICAL_HOST", func() string { return fmt.Sprintf("tinderizer.dev:%d", port) })
     logger        = log.New(os.Stdout, "[server] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
     templates     = template.Must(template.ParseGlob("views/*.tmpl"))
     newJobs       chan J.Job
