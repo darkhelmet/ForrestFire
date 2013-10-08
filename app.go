@@ -12,6 +12,7 @@ import (
     "github.com/darkhelmet/postmark"
     "github.com/darkhelmet/stat"
     "github.com/darkhelmet/tinderizer"
+    "github.com/darkhelmet/tinderizer/cache"
     J "github.com/darkhelmet/tinderizer/job"
     "github.com/darkhelmet/webutil"
     "github.com/gorilla/mux"
@@ -60,6 +61,13 @@ type JSON map[string]interface{}
 
 func init() {
     stat.Prefix = "[Tinderizer]"
+
+    memcacheServers := env.StringDefault("MEMCACHIER_SERVERS", "")
+    if memcacheServers == "" {
+        memcacheUsername := env.StringDefault("MEMCACHIER_USERNAME", "")
+        memcachePassword := env.StringDefault("MEMCACHIER_PASSWORD", "")
+        cache.SetupMemcache(memcacheServers, memcacheUsername, memcachePassword)
+    }
 
     rdbToken := env.String("READABILITY_TOKEN")
     pmToken := env.String("POSTMARK_TOKEN")
