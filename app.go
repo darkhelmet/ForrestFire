@@ -329,7 +329,7 @@ func (c CanonicalHostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
     } else {
         stat.Count(HttpRedirect, 1)
         r.URL.Host = canonicalHost
-        r.URL.Scheme = "http:"
+        r.URL.Scheme = "http"
         http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
     }
 }
