@@ -15,8 +15,8 @@ import (
 )
 
 const (
-    CoffeeScriptPath = "src/bookmarklet/bookmarklet.coffee"
-    LessPath         = "src/bookmarklet/bookmarklet.less"
+    CoffeeScriptPath = "bookmarklet/bookmarklet.coffee"
+    LessPath         = "bookmarklet/bookmarklet.less"
 )
 
 var (

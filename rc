@@ -1,5 +1,3 @@
-safe_gopath_export $PWD
-
 heroku_get() {
     heroku config | grep $1 | awk '{ print $2 }'
 }
@@ -13,5 +11,5 @@ watch() {
 }
 
 tinderizer() {
-    PORT=3000 CANONICAL_HOST=tinderizer.dev:3000 ./bin/tinderizer
+    PORT=3000 CANONICAL_HOST=tinderizer.dev:3000 ForrestFire
 }

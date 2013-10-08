@@ -6,3 +6,5 @@ _bin/
 pkg/
 src/tinderizer/tinderizer
 src/code.google.com/
+*.key
+*.crt

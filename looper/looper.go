@@ -1,17 +1,13 @@
 package looper
 
 import (
-    "cache"
+    "github.com/darkhelmet/tinderizer/cache"
 )
 
 const (
     TTL    = 60 * 60 // 1 hour
     Resent = "resent"
 )
-
-func MapUrl(messageId, url string) {
-    cache.Set(messageId, url, TTL)
-}
 
 func MarkResent(messageId, email string) (uri string) {
     uri, _ = cache.Get(messageId)
