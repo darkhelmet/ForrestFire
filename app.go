@@ -26,6 +26,7 @@ import (
     "regexp"
     "runtime"
     "strings"
+    "syscall"
 )
 
 const (
@@ -63,7 +64,7 @@ func init() {
     stat.Prefix = "[Tinderizer]"
 
     memcacheServers := env.StringDefault("MEMCACHIER_SERVERS", "")
-    if memcacheServers == "" {
+    if memcacheServers != "" {
         memcacheUsername := env.StringDefault("MEMCACHIER_USERNAME", "")
         memcachePassword := env.StringDefault("MEMCACHIER_PASSWORD", "")
         cache.SetupMemcache(memcacheServers, memcacheUsername, memcachePassword)
@@ -81,7 +82,7 @@ func init() {
 
     // TODO: handle SIGINT
     c := make(chan os.Signal, 1)
-    signal.Notify(c, os.Interrupt)
+    signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
     go shutdown(c)
 }
 
