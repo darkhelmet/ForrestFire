@@ -1,1 +1,1 @@
-web: ./bin/tinderizer
+web: ./bin/ForrestFire
