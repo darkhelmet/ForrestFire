@@ -1,3 +1,7 @@
 watch() {
     puncher 'killall -USR1 tinderizer' src/bookmarklet/bookmarklet.coffee
 }
+
+deploy() {
+    git push heroku master
+}

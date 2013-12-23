@@ -353,7 +353,6 @@ func main() {
     var handler http.Handler = r
     handler = webutil.AlwaysHeaderHandler{handler, http.Header{HeaderAccessControlAllowOrigin: {"*"}}}
     handler = webutil.GzipHandler{handler}
-    handler = webutil.LoggerHandler{handler, logger}
     handler = CanonicalHostHandler{handler}
     handler = webutil.EnsureRequestBodyClosedHandler{handler}
 
