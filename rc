@@ -5,3 +5,11 @@ watch() {
 deploy() {
     git push heroku master
 }
+
+deps() {
+    godep save -copy=false
+}
+
+logs() {
+    heroku logs --tail
+}

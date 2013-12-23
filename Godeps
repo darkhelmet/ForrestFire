@@ -21,11 +21,11 @@
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/readability",
-			"Rev": "074dbc4e2dd91eb72627cc6cf4ce276a889c558b"
+			"Rev": "afe7e5a58a88ec30b3122db7fc486e6b5fa9e7a5"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer",
-			"Rev": "0a2a43ac2bc2fd336082c046dc9aec9c49fa7378"
+			"Rev": "a66e72f4fd0f043c119fb68d66d0355dba48a03d"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/webcompiler",
