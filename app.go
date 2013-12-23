@@ -10,7 +10,6 @@ import (
     "github.com/darkhelmet/ForrestFire/looper"
     "github.com/darkhelmet/env"
     "github.com/darkhelmet/postmark"
-    "github.com/darkhelmet/stat"
     "github.com/darkhelmet/tinderizer"
     "github.com/darkhelmet/tinderizer/cache"
     J "github.com/darkhelmet/tinderizer/job"
@@ -61,8 +60,6 @@ var (
 type JSON map[string]interface{}
 
 func init() {
-    stat.Prefix = "[Tinderizer]"
-
     memcacheServers := env.StringDefault("MEMCACHIER_SERVERS", "")
     if memcacheServers != "" {
         memcacheUsername := env.StringDefault("MEMCACHIER_USERNAME", "")
@@ -223,7 +220,6 @@ func InboundHandler(res Response, req *http.Request) {
             logger.Printf("email submission of %#v to %#v", url, email)
             if job, err := J.New(email, url, ""); err == nil {
                 app.Queue(*job)
-                stat.Count(SubmitEmail, 1)
             }
         }
     }
@@ -254,7 +250,6 @@ func BounceHandler(res Response, req *http.Request) {
         } else {
             app.Queue(*job)
             logger.Printf("resending %#v to %#v after bounce", uri, bounce.Email)
-            stat.Count(PostmarkBounce, 1)
         }
     }
     w := res.Plain()
@@ -285,11 +280,9 @@ func OldSubmitHandler(res Response, req *http.Request) {
     w := res.JSON()
     encoder := json.NewEncoder(w)
     Submit(encoder, req.URL.Query().Get("email"), req.URL.Query().Get("url"), "")
-    stat.Count(SubmitOld, 1)
 }
 
 func HandleSubmitError(encoder *json.Encoder, err error) {
-    stat.Count(SubmitError, 1)
     encoder.Encode(JSON{"message": err.Error()})
 }
 
@@ -306,7 +299,6 @@ func Submit(encoder *json.Encoder, email, url, content string) {
         "message": "Submitted! Hang tight...",
         "id":      job.Key.String(),
     })
-    stat.Count(SubmitSuccess, 1)
 }
 
 func StatusHandler(res Response, req *http.Request) {
@@ -336,7 +328,6 @@ func (c CanonicalHostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
     if prefix || !get || chost {
         c.Handler.ServeHTTP(w, r)
     } else {
-        stat.Count(HttpRedirect, 1)
         r.URL.Host = canonicalHost
         r.URL.Scheme = "http"
         http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
