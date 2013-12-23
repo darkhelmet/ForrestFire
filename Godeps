@@ -24,12 +24,8 @@
 			"Rev": "074dbc4e2dd91eb72627cc6cf4ce276a889c558b"
 		},
 		{
-			"ImportPath": "github.com/darkhelmet/stat",
-			"Rev": "b050b89c4501458dcdb8534a6f3bfc4e0ab4f458"
-		},
-		{
 			"ImportPath": "github.com/darkhelmet/tinderizer",
-			"Rev": "7bfc43e9d321492c7103ee61358e350077608487"
+			"Rev": "0a2a43ac2bc2fd336082c046dc9aec9c49fa7378"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/webcompiler",
@@ -54,10 +50,6 @@
 		{
 			"ImportPath": "github.com/pkulak/simpletransport/simpletransport",
 			"Rev": "bde1212ee868cd4aa6c594857d201775aa47fe98"
-		},
-		{
-			"ImportPath": "github.com/stathat/go",
-			"Rev": "01d012b9ee2ecc107cb28b6dd32d9019ed5c1d77"
 		}
 	]
 }
