@@ -1,15 +1,3 @@
-heroku_get() {
-    heroku config | grep $1 | awk '{ print $2 }'
-}
-
-export FROM=$(heroku_get FROM)
-export READABILITY_TOKEN=$(heroku_get READABILITY_TOKEN)
-export POSTMARK_TOKEN=$(heroku_get POSTMARK_TOKEN)
-
 watch() {
     puncher 'killall -USR1 tinderizer' src/bookmarklet/bookmarklet.coffee
-}
-
-tinderizer() {
-    PORT=3000 CANONICAL_HOST=tinderizer.dev:3000 ForrestFire
 }

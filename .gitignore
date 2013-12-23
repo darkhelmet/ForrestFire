@@ -8,3 +8,4 @@ src/tinderizer/tinderizer
 src/code.google.com/
 *.key
 *.crt
+.env
