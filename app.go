@@ -265,11 +265,11 @@ type Submission struct {
 func SubmitHandler(res Response, req *http.Request) {
     decoder := json.NewDecoder(req.Body)
     var submission Submission
-    err := decoder.Decode(&submission)
-    if err != nil {
+    if err := decoder.Decode(&submission); err != nil {
         logger.Printf("failed decoding submission: %s", err)
+    } else {
+        logger.Printf("submission of %#v to %#v", submission.Url, submission.Email)
     }
-    logger.Printf("submission of %#v to %#v", submission.Url, submission.Email)
 
     w := res.JSON()
     encoder := json.NewEncoder(w)
@@ -283,6 +283,7 @@ func OldSubmitHandler(res Response, req *http.Request) {
 }
 
 func HandleSubmitError(encoder *json.Encoder, err error) {
+    logger.Printf("submit error: %s", err)
     encoder.Encode(JSON{"message": err.Error()})
 }
 
