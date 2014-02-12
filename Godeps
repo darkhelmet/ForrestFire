@@ -25,7 +25,7 @@
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer",
-			"Rev": "a66e72f4fd0f043c119fb68d66d0355dba48a03d"
+			"Rev": "c22fb2b09d51b31e792a4e6ea01d707f21193f14"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/webcompiler",
