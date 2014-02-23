@@ -288,14 +288,18 @@ func HandleSubmitError(encoder *json.Encoder, err error) {
 }
 
 func Submit(encoder *json.Encoder, email, url, content string) {
+    logger.Printf("Submit")
     job, err := J.New(email, url, content)
     if err != nil {
         HandleSubmitError(encoder, err)
         return
     }
 
+    logger.Printf("setting progress")
     job.Progress("Working...")
+    logger.Printf("queuing")
     app.Queue(*job)
+    logger.Printf("encoding")
     encoder.Encode(JSON{
         "message": "Submitted! Hang tight...",
         "id":      job.Key.String(),
