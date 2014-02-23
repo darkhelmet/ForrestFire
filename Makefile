@@ -1,4 +1,7 @@
 deps:
 	godep save -copy=false
 
-.PHONY: deps
+deploy:
+	git push heroku master
+
+.PHONY: deps deploy
