@@ -60,11 +60,9 @@ var (
 type JSON map[string]interface{}
 
 func init() {
-    memcacheServers := env.StringDefault("MEMCACHIER_SERVERS", "")
-    if memcacheServers != "" {
-        memcacheUsername := env.StringDefault("MEMCACHIER_USERNAME", "")
-        memcachePassword := env.StringDefault("MEMCACHIER_PASSWORD", "")
-        cache.SetupMemcache(memcacheServers, memcacheUsername, memcachePassword)
+    redis := env.StringDefault("REDISCLOUD_URL", "")
+    if redis != "" {
+        cache.SetupRedis(redis, "timeout=2s&maxidle=1")
     }
 
     rdbToken := env.String("READABILITY_TOKEN")
@@ -288,18 +286,14 @@ func HandleSubmitError(encoder *json.Encoder, err error) {
 }
 
 func Submit(encoder *json.Encoder, email, url, content string) {
-    logger.Printf("Submit")
     job, err := J.New(email, url, content)
     if err != nil {
         HandleSubmitError(encoder, err)
         return
     }
 
-    logger.Printf("setting progress")
     job.Progress("Working...")
-    logger.Printf("queuing")
     app.Queue(*job)
-    logger.Printf("encoding")
     encoder.Encode(JSON{
         "message": "Submitted! Hang tight...",
         "id":      job.Key.String(),

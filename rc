@@ -13,3 +13,11 @@ deps() {
 logs() {
     heroku logs --tail
 }
+
+run() {
+    go get -v && foreman start -f .Procfile
+}
+
+test() {
+    curl "http://tinderizer.dev:3000/ajax/submit.json?email=darkhelmet@darkhelmetlive.com&url=http://verboselogging.com/2012/11/08/rubyconf-mission-complete"
+}

@@ -25,7 +25,7 @@
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer",
-			"Rev": "420d24d5114fdbbe997751c0c7c2dbf40e5b1a4a"
+			"Rev": "eb1488abe1be4fa2873a6975c33131be1b613dea"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/webcompiler",
@@ -50,6 +50,10 @@
 		{
 			"ImportPath": "github.com/pkulak/simpletransport/simpletransport",
 			"Rev": "bde1212ee868cd4aa6c594857d201775aa47fe98"
+		},
+		{
+			"ImportPath": "github.com/xuyu/goredis",
+			"Rev": "1097760f0a8ccd0763b59ddcd5278cea21122e13"
 		}
 	]
 }
