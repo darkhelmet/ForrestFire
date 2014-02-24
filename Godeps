@@ -8,10 +8,6 @@
 			"Rev": "65926d3a7d01d26b31f8e70a799044bcecb48775"
 		},
 		{
-			"ImportPath": "github.com/bmizerany/mc",
-			"Rev": "c12cdfdb09a7cd243dbbab66caeab5bc5ce4501c"
-		},
-		{
 			"ImportPath": "github.com/darkhelmet/env",
 			"Rev": "d1827543acd996dc90693a2ae0b1a18e33e0df17"
 		},
@@ -25,7 +21,7 @@
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer",
-			"Rev": "68536adeb5d4aca9e74ac8bdf4524c4c9c916e4a"
+			"Rev": "f5ceea10cb6880cce02fda4077ab2da22ae4ead6"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/webcompiler",
