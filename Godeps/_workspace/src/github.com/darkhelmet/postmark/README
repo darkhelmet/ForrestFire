@@ -1,0 +1,42 @@
+This project is no longer actively maintained. I might get back to it one 
+day. Have updated things for the Go version 1 release.
+
+Very basic access to the postmark API. At the moment it just allows you to 
+send a single message at a time. 
+
+Example: 
+
+package main
+
+import (
+    "os"
+    "github.com/gcmurphy/postmark"
+)
+
+func main(){
+
+    msg := &postmark.Message {
+                From: "betty@gmail.com",
+                To: "bob@hotmail.com",
+                Subject: "I IS TEN NINJA'S",
+                TextBody: `
+                    Dear Bob, 
+
+                    Check out this sweet ninja cat.
+
+                    Sincerely,
+
+                    Betty.`,
+            }
+
+    msg.Attach("ninja_cat.jpg")
+
+    pm := postmark.NewPostmark("YOUR_API_KEY")
+    rsp, err := pm.Send(msg)
+    if err != nil {
+        println(err.Error())
+        os.Exit(1)
+    }
+    println(rsp.String())
+}
+
