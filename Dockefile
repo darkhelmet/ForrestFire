@@ -8,7 +8,7 @@ RUN rm -rf Godeps/_workspace/bin Godeps/_workspace/pkg
 
 RUN godep go install ./...
 
-ENV PATH   /go/src/github.com/darkhelmet/ForrestFire/Godeps/_workspace/bin:$PATH
+ENV PATH   /go/src/github.com/darkhelmet/ForrestFire/Godeps/_workspace/bin:/go/src/github.com/darkhelmet/ForrestFire/vendor:$PATH
 ENV GOPATH /go/src/github.com/darkhelmet/ForrestFire/Godeps/_workspace:$GOPATH
 
 ENV PORT 80
