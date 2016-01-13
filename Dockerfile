@@ -16,4 +16,4 @@ ENV GOPATH /go/src/github.com/darkhelmet/ForrestFire/Godeps/_workspace:$GOPATH
 ENV PORT 80
 EXPOSE 80
 
-CMD /go/src/github.com/darkhelmet/ForrestFire/bin/ForrestFire
+CMD /go/bin/ForrestFire
