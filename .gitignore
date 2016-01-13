@@ -9,3 +9,4 @@ src/code.google.com/
 *.key
 *.crt
 .env
+*.pem
