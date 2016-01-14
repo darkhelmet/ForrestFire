@@ -63,7 +63,7 @@ type JSON map[string]interface{}
 func init() {
 	redis := env.StringDefault("REDISCLOUD_URL", env.StringDefault("REDIS_PORT", ""))
 	if redis != "" {
-		cache.SetupRedis(redis, "timeout=2s&maxidle=1")
+		cache.SetupRedis(redis, env.StringDefault("REDIS_OPTIONS", "timeout=2s&maxidle=1"))
 	}
 
 	rdbToken := env.String("READABILITY_TOKEN")
