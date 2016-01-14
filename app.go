@@ -61,7 +61,7 @@ var (
 type JSON map[string]interface{}
 
 func init() {
-	redis := env.StringDefault("REDISCLOUD_URL", "redis://redis:6379")
+	redis := env.StringDefault("REDISCLOUD_URL", "tcp://redis:6379")
 	if redis != "" {
 		cache.SetupRedis(redis, "timeout=2s&maxidle=1")
 	}
