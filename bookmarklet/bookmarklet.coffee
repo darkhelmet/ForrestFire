@@ -21,7 +21,7 @@ else
         xhr.send(data)
 
 class Tinderizer
-    paywallHosts: /arstechnica|nytimes|theatlantic|guardian|wsj|thetimes/
+    paywallHosts: /arstechnica|nytimes|theatlantic|guardian|wsj|thetimes|starcitygames/
 
     css: {{.Style}}
 
