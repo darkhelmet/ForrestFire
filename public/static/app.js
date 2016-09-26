@@ -5,7 +5,7 @@ String.prototype.hexEncode = function() {
   while (i < this.length) {
     h = this.charCodeAt(i++).toString(16);
     while (h.length < 2) {
-      h = h;
+      h = "0" + h;
     }
     r += h;
   }
