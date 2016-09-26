@@ -42,7 +42,7 @@ $(document).ready(function() {
     })();";
     $('#bookmarklet').attr('href', script);
   }).change(function() {
-    $('#inbound-email').text($(this).val().hexEncode() + "@tinderizer.com");
+    $('#inbound-email').text($(this).val().trim().hexEncode() + "@tinderizer.com");
   });
 
   $(document).bind('reveal.facebox', function() {
