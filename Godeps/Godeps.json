@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/darkhelmet/ForrestFire",
 	"GoVersion": "go1.7",
-	"GodepVersion": "v62",
+	"GodepVersion": "v75",
 	"Deps": [
 		{
 			"ImportPath": "github.com/darkhelmet/env",
