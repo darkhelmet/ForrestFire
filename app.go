@@ -66,14 +66,14 @@ func init() {
 		cache.SetupRedis(redis, env.StringDefault("REDIS_OPTIONS", "timeout=15s&maxidle=1"))
 	}
 
-	rdbToken := env.String("READABILITY_TOKEN")
+	mercuryToken := env.String("MERCURY_TOKEN")
 	pmToken := env.String("POSTMARK_TOKEN")
 	from := env.String("FROM")
 	binary, _ := exec.LookPath(fmt.Sprintf("kindlegen-%s", runtime.GOOS))
 
 	tlogger := log.New(os.Stdout, "[tinderizer] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
 
-	app = tinderizer.New(rdbToken, pmToken, from, binary, tlogger)
+	app = tinderizer.New(mercuryToken, pmToken, from, binary, tlogger)
 	app.Run(QueueSize)
 
 	// TODO: handle SIGINT
@@ -217,7 +217,7 @@ func InboundHandler(res Response, req *http.Request) {
 			logger.Printf("failed extracting needed parts from email: %s", err)
 		} else {
 			logger.Printf("email submission of %#v to %#v", url, email)
-			if job, err := J.New(email, url, ""); err == nil {
+			if job, err := J.New(email, url); err == nil {
 				app.Queue(*job)
 			}
 		}
@@ -244,7 +244,7 @@ func BounceHandler(res Response, req *http.Request) {
 			return
 		}
 		uri := looper.MarkResent(bounce.MessageID, bounce.Email)
-		if job, err := J.New(bounce.Email, uri, ""); err != nil {
+		if job, err := J.New(bounce.Email, uri); err != nil {
 			logger.Printf("bounced email failed to validate as a job: %s", err)
 		} else {
 			app.Queue(*job)
@@ -272,13 +272,15 @@ func SubmitHandler(res Response, req *http.Request) {
 
 	w := res.JSON()
 	encoder := json.NewEncoder(w)
-	Submit(encoder, submission.Email, submission.Url, submission.Content)
+	Submit(encoder, submission.Email, submission.Url)
 }
 
 func OldSubmitHandler(res Response, req *http.Request) {
 	w := res.JSON()
 	encoder := json.NewEncoder(w)
-	Submit(encoder, req.URL.Query().Get("email"), req.URL.Query().Get("url"), "")
+	email := req.URL.Query().Get("email")
+	url := req.URL.Query().Get("url")
+	Submit(encoder, email, url)
 }
 
 func HandleSubmitError(encoder *json.Encoder, err error) {
@@ -286,8 +288,8 @@ func HandleSubmitError(encoder *json.Encoder, err error) {
 	encoder.Encode(JSON{"message": err.Error()})
 }
 
-func Submit(encoder *json.Encoder, email, url, content string) {
-	job, err := J.New(email, url, content)
+func Submit(encoder *json.Encoder, email, url string) {
+	job, err := J.New(email, url)
 	if err != nil {
 		HandleSubmitError(encoder, err)
 		return

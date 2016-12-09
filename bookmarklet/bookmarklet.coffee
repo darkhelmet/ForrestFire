@@ -21,8 +21,6 @@ else
         xhr.send(data)
 
 class Tinderizer
-    paywallHosts: /arstechnica|nytimes|theatlantic|guardian|wsj|thetimes|starcitygames/
-
     css: {{.Style}}
 
     host: "{{.Host}}"
@@ -34,7 +32,6 @@ class Tinderizer
         "You need to run this on an article page! Main or home pages don't work very well.": new RegExp(escapeRegex(window.location.protocol + "//#{window.location.host}/") + '$')
         'There is nothing to do on about:blank!': /about:blank/
         'You need to run this on a publicly accessible HTML page!': /\.(pdf|jpg)$/i
-        'Run this on the raw page, not a Readability page!': /^https?:\/\/www.readability.com\/articles\//i
 
     constructor: (@div, @url) ->
         @to = @div.getAttribute('data-email')
@@ -96,9 +93,6 @@ class Tinderizer
                         @body.removeChild(@div)
                         window.location = 'https://tinderizer.com/' if @redirect
 
-    sendHTML: ->
-        @paywallHosts.test(document.location.host)
-
     run: ->
         if @okay()
             @appendStyleSheet()
@@ -106,8 +100,6 @@ class Tinderizer
             data =
                 url: @url
                 email: @to
-            if @sendHTML()
-                data.content = document.documentElement.outerHTML
             Request(@submitEndpoint, 'POST', JSON.stringify(data), @onSubmit)
 
 div = document.getElementById('Tinderizer') || document.getElementById('kindlebility')

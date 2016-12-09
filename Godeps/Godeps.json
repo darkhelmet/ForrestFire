@@ -1,27 +1,63 @@
 {
 	"ImportPath": "github.com/darkhelmet/ForrestFire",
-	"GoVersion": "go1.3.1",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v62",
 	"Deps": [
-		{
-			"ImportPath": "code.google.com/p/go.net/html",
-			"Comment": "null-99",
-			"Rev": "65926d3a7d01d26b31f8e70a799044bcecb48775"
-		},
 		{
 			"ImportPath": "github.com/darkhelmet/env",
 			"Rev": "d1827543acd996dc90693a2ae0b1a18e33e0df17"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/mercury",
+			"Rev": "a9ab5b5e3099d498c558a40b324b678bee108323"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/postmark",
 			"Rev": "b21b143ad465b421d7f6d62f0c3a7d55eafdc6b3"
 		},
 		{
-			"ImportPath": "github.com/darkhelmet/readability",
-			"Rev": "afe7e5a58a88ec30b3122db7fc486e6b5fa9e7a5"
+			"ImportPath": "github.com/darkhelmet/tinderizer",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
 		},
 		{
-			"ImportPath": "github.com/darkhelmet/tinderizer",
-			"Rev": "f5ceea10cb6880cce02fda4077ab2da22ae4ead6"
+			"ImportPath": "github.com/darkhelmet/tinderizer/blacklist",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/tinderizer/boots",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/tinderizer/cache",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/tinderizer/cleaner",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/tinderizer/emailer",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/tinderizer/extractor",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/tinderizer/hashie",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/tinderizer/job",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/tinderizer/kindlegen",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+		},
+		{
+			"ImportPath": "github.com/darkhelmet/tinderizer/user",
+			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/webcompiler",
@@ -50,6 +86,14 @@
 		{
 			"ImportPath": "github.com/xuyu/goredis",
 			"Rev": "1097760f0a8ccd0763b59ddcd5278cea21122e13"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html",
+			"Rev": "fb93926129b8ec0056f2f458b1f519654814edf0"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html/atom",
+			"Rev": "fb93926129b8ec0056f2f458b1f519654814edf0"
 		}
 	]
 }
