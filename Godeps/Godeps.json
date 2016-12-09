@@ -17,47 +17,47 @@
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/blacklist",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/boots",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/cache",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/cleaner",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/emailer",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/extractor",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/hashie",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/job",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/kindlegen",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/user",
-			"Rev": "c55dd788fac95634df30e3e9ee3c47241a1f7a95"
+			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/webcompiler",

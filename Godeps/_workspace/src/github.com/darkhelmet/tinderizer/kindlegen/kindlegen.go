@@ -1,19 +1,19 @@
 package kindlegen
 
 import (
-    "fmt"
-    "github.com/darkhelmet/env"
-    J "github.com/darkhelmet/tinderizer/job"
-    T "html/template"
-    "log"
-    "os"
-    "os/exec"
-    "sync"
+	"fmt"
+	"github.com/darkhelmet/env"
+	J "github.com/darkhelmet/tinderizer/job"
+	T "html/template"
+	"log"
+	"os"
+	"os/exec"
+	"sync"
 )
 
 const (
-    FriendlyMessage = "Sorry, conversion failed."
-    Tmpl            = `
+	FriendlyMessage = "Sorry, conversion failed."
+	Tmpl            = `
 <html>
     <head>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
@@ -48,82 +48,82 @@ const (
 )
 
 var (
-    template *T.Template
-    logger   = log.New(os.Stdout, "[kindlegen] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
+	template *T.Template
+	logger   = log.New(os.Stdout, "[kindlegen] ", env.IntDefault("LOG_FLAGS", log.LstdFlags|log.Lmicroseconds))
 )
 
 func init() {
-    template = T.Must(T.New("kindle").Parse(Tmpl))
+	template = T.Must(T.New("kindle").Parse(Tmpl))
 }
 
 type Kindlegen struct {
-    wg     sync.WaitGroup
-    binary string
-    Input  <-chan J.Job
-    Output chan<- J.Job
-    Error  chan<- J.Job
+	wg     sync.WaitGroup
+	binary string
+	Input  <-chan J.Job
+	Output chan<- J.Job
+	Error  chan<- J.Job
 }
 
 func New(binary string, input <-chan J.Job, output chan<- J.Job, error chan<- J.Job) *Kindlegen {
-    return &Kindlegen{
-        binary: binary,
-        Input:  input,
-        Output: output,
-        Error:  error,
-    }
+	return &Kindlegen{
+		binary: binary,
+		Input:  input,
+		Output: output,
+		Error:  error,
+	}
 }
 
 func (k *Kindlegen) error(job J.Job, format string, args ...interface{}) {
-    logger.Printf(format, args...)
-    job.Friendly = FriendlyMessage
-    k.Error <- job
+	logger.Printf(format, args...)
+	job.Friendly = FriendlyMessage
+	k.Error <- job
 }
 
 func (k *Kindlegen) Run(wg *sync.WaitGroup) {
-    defer wg.Done()
-    for job := range k.Input {
-        k.wg.Add(1)
-        go k.Process(job)
-    }
-    k.wg.Wait()
-    close(k.Output)
+	defer wg.Done()
+	for job := range k.Input {
+		k.wg.Add(1)
+		go k.Process(job)
+	}
+	k.wg.Wait()
+	close(k.Output)
 }
 
 func (k *Kindlegen) Process(job J.Job) {
-    job.Progress("Optimizing for Kindle...")
+	job.Progress("Optimizing for Kindle...")
 
-    defer k.wg.Done()
-    if err := writeHTML(job); err != nil {
-        k.error(job, err.Error())
-        return
-    }
+	defer k.wg.Done()
+	if err := writeHTML(job); err != nil {
+		k.error(job, err.Error())
+		return
+	}
 
-    cmd := exec.Command(k.binary, []string{job.HTMLFilename()}...)
-    cmd.Dir = job.Root()
-    out, err := cmd.CombinedOutput()
-    if !fileExists(job.MobiFilePath()) {
-        k.error(job, "failed running kindlegen: %s {output=%s}", err, out)
-        return
-    }
+	cmd := exec.Command(k.binary, []string{job.HTMLFilename()}...)
+	cmd.Dir = job.Root()
+	out, err := cmd.CombinedOutput()
+	if !fileExists(job.MobiFilePath()) {
+		k.error(job, "failed running kindlegen: %s {output=%s}", err, out)
+		return
+	}
 
-    job.Progress("Optimization complete...")
-    k.Output <- job
+	job.Progress("Optimization complete...")
+	k.Output <- job
 }
 
 func fileExists(path string) bool {
-    stat, _ := os.Stat(path)
-    return stat != nil
+	stat, _ := os.Stat(path)
+	return stat != nil
 }
 
 func writeHTML(job J.Job) error {
-    file, err := os.OpenFile(job.HTMLFilePath(), os.O_CREATE|os.O_WRONLY, 0644)
-    if err != nil {
-        return fmt.Errorf("failed opening file: %s", err)
-    }
-    defer file.Close()
+	file, err := os.OpenFile(job.HTMLFilePath(), os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed opening file: %s", err)
+	}
+	defer file.Close()
 
-    if err = template.Execute(file, &job); err != nil {
-        return fmt.Errorf("failed executing template: %s", err)
-    }
-    return nil
+	if err = template.Execute(file, &job); err != nil {
+		return fmt.Errorf("failed executing template: %s", err)
+	}
+	return nil
 }
