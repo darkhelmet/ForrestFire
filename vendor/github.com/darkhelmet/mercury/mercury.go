@@ -17,7 +17,6 @@ var (
 type Response struct {
 	Title         string  `json:"title"`
 	Content       string  `json:"content"`
-	DatePublished *Time   `json:"date_published"`
 	URL           string  `json:"url"`
 	Domain        string  `json:"domain"`
 	WordCount     int     `json:"word_count"`
