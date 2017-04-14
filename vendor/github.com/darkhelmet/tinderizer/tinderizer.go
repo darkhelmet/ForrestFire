@@ -23,6 +23,22 @@ type App struct {
 	wg        sync.WaitGroup
 }
 
+func (a *App) RunOne(clean bool) {
+	a.input = make(chan J.Job, 1)
+	conversion := make(chan J.Job, 1)
+	emailing := make(chan J.Job, 1)
+	cleaning := make(chan J.Job, 1)
+
+	a.wg.Add(3)
+	go extractor.New(a.mercury, a.input, conversion, cleaning).Run(&a.wg)
+	go kindlegen.New(a.kindlegen, conversion, emailing, cleaning).Run(&a.wg)
+	go emailer.New(a.postmark, a.from, emailing, cleaning, cleaning).Run(&a.wg)
+	if clean {
+		a.wg.Add(1)
+		go cleaner.New(cleaning).Run(&a.wg)
+	}
+}
+
 func (a *App) Run(size int) {
 	a.input = make(chan J.Job, size)
 	conversion := make(chan J.Job, size)

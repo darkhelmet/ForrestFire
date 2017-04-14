@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -94,27 +95,56 @@ func (e *Extractor) Process(job J.Job) {
 	e.Output <- job
 }
 
+func cleanSrcset(val string) string {
+	re := regexp.MustCompile(`(?:(?P<url>[^"'\s,]+)\s*(?:\s+\d+[wx])(?:,\s*)?)`)
+	match := re.FindStringSubmatch(val)
+	if match == nil {
+		return val
+	}
+	return match[1]
+}
+
+func srcset(node *html.Node) bool {
+	return attrIndex(node, "srcset") > -1
+}
+
+func attrIndex(node *html.Node, key string) int {
+	for index, attr := range node.Attr {
+		if attr.Key == key {
+			return index
+		}
+	}
+	return -1
+}
+
 func rewriteAndDownloadImages(root string, content string) (*html.Node, error) {
 	var wg sync.WaitGroup
 	imageDownloader := newDownloader(root, timeout)
 	doc, err := boots.Walk(strings.NewReader(content), "img", func(node *html.Node) {
-		for index, attr := range node.Attr {
-			if attr.Key == "src" {
-				uri := attr.Val
-				altered := fmt.Sprintf("%x.jpg", hashie.Sha1([]byte(uri)))
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-					logger.Printf("downloading image: %s", uri)
-					if err := imageDownloader.downloadToFile(uri, altered); err != nil {
-						logger.Printf("downloading image failed: %s", err)
-					}
-				}()
-				node.Attr[index].Val = altered
-				break
-			}
+		var index int
+		var attr html.Attribute
+		var uri string
+		if srcset(node) {
+			index = attrIndex(node, "srcset")
+			attr = node.Attr[index]
+			uri = cleanSrcset(attr.Val)
+		} else {
+			index = attrIndex(node, "src")
+			attr = node.Attr[index]
+			uri = attr.Val
 		}
+		altered := fmt.Sprintf("%x.jpg", hashie.Sha1([]byte(uri)))
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			logger.Printf("downloading image: %s", uri)
+			if err := imageDownloader.downloadToFile(uri, altered); err != nil {
+				logger.Printf("downloading image failed: %s", err)
+			}
+		}()
+		node.Attr[attrIndex(node, "src")].Val = altered
 	})
 	wg.Wait()
+	logger.Println("finished rewriting images")
 	return doc, err
 }

@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/darkhelmet/ForrestFire",
-	"GoVersion": "go1.7",
-	"GodepVersion": "v75",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
 	"Deps": [
 		{
 			"ImportPath": "github.com/darkhelmet/env",
@@ -17,47 +17,47 @@
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/blacklist",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/boots",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/cache",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/cleaner",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/emailer",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/extractor",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/hashie",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/job",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/kindlegen",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/tinderizer/user",
-			"Rev": "fdc692cdbded00aab7a16d77b39bb7bf823aad37"
+			"Rev": "ec21130935105e1737b0ca46b9044b3e117603b2"
 		},
 		{
 			"ImportPath": "github.com/darkhelmet/webcompiler",
