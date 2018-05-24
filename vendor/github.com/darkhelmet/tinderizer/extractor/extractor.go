@@ -126,10 +126,16 @@ func rewriteAndDownloadImages(root string, content string) (*html.Node, error) {
 		var uri string
 		if srcset(node) {
 			index = attrIndex(node, "srcset")
+			if index < 0 {
+				return
+			}
 			attr = node.Attr[index]
 			uri = cleanSrcset(attr.Val)
 		} else {
 			index = attrIndex(node, "src")
+			if index < 0 {
+				return
+			}
 			attr = node.Attr[index]
 			uri = attr.Val
 		}
